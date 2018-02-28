@@ -5,6 +5,7 @@ The language is scoped the same way as Racket, except for custom forms.
 -   In general, code in a `define-docs` like
     ```r
     (define-docs (foo x)
+      [: Any -> Any]
       [Purpose: @foo using @x.]
       x)
     ```
@@ -18,6 +19,8 @@ The language is scoped the same way as Racket, except for custom forms.
     (if the value has arguments). For example, in
     ```r
     (define (foo x)
+      [: Any -> Any]
+      [Purpose: ...]
       [Examples:
        x => "bar"]
       x)
@@ -28,7 +31,7 @@ The language is scoped the same way as Racket, except for custom forms.
     ```r
     (define-data Foo
       [: Int]
-      [@ @Foo])
+      [Interpretation: @Foo])
     ```
     has the same scope as the definition itself, except it can refer to
     the type being defined (like with `define-docs`). In the example,
@@ -38,13 +41,13 @@ In the above rules, "code" refers to
 - Types in declarations - `[: ...]` and `[Signature: ...]`.
 - Code spliced in raw text via `@`.
 - Code in examples.
-- The symbol `x` in `[Accumulator: x : ...]`.
+- The identifier `x` in `[Accumulator: x : ...]`.
 
-Types in declarations bind. In `(define-data X [: Y ...])`, the type `X`
-will be created, and it will be equivalent to type `Y ...`. In
-`(define-docs x [Signature: Y ...])` or
-`(define-docs (f x ...) [Signature: Y ...])`, the value `x` or `f` will
-have type `Y ...`. As mentioned above, these types bind in the same
+Types in declarations bind. In `(define-data X [: Y ...] ...)`, the type
+`X` will be created, and it will be equivalent to type `Y ...`. In
+`(define-docs x [Signature: Y ...] ...)` or
+`(define-docs (f x ...) [Signature: Y ...]) ...`, the value `x` or `f`
+will have type `Y ...`. As mentioned above, these types bind in the same
 scope as the definition itself.
 
 Type variables are declared inside `{...}` in a type  declaration, e.g.

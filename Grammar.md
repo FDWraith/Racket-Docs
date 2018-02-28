@@ -5,18 +5,21 @@ potential forms:
 
 ```text
 Expr = ... ; From Racket
-     | (define-docs Head [Signature: UnionType] Docs)
-     | (define-data Id [: UnionType] Docs)
+     | (define-docs Head
+         [Signature: UnionType]
+         [Purpose: RawText]
+         ExtraDoc ...)
+     | (define-data Id
+         [: UnionType]
+         [Interpretation: RawText]
+         ExtraDoc ...)
 
 Head = Id
      | (Id Id ...)
 
-Docs = Doc ...
-
-Doc = [Purpose: RawText]
-    | [Examples: Example ...]
-    | [Accumulator: Id : RawText]
-    | [Generative: RawText]
+ExtraDoc = [Examples: Example ...]
+         | [Accumulator: Id : RawText]
+         | [Generative: RawText]
 
 UnionType = Type
           | TypeOption TypeOption ...
