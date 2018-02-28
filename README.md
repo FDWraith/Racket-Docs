@@ -1,3 +1,3 @@
 # Racket-Docs
 
-JavaDoc-style documentation for Racket.
+JavaDoc-style documentation for Racket. See `./Design`.
