@@ -29,3 +29,5 @@ When Racket+Docs programs are tested (in submodule `test`), all examples
 in `define-docs` are verified using rackunit. Each example has the form
 `x => y`, where `x` and `y` are values. When verified,
 `(check-equal? x y)` is run.
+
+The interactions are completely the same as Racket.

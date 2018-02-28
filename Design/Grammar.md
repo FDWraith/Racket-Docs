@@ -8,11 +8,11 @@ Expr = ... ; From Racket
      | (define-docs Head
          [Signature: Type]
          [Purpose: RawText]
-         ExtraDoc ...)
+         ExtraDoc ...) ; No ExtraDoc repeats
      | (define-data Id
          [: UnionType]
          [Interpretation: RawText]
-         ExtraDoc ...)
+         ExtraDoc ...) ; No ExtraDoc repeats
 
 Head = Id
      | (Id Id ...)
@@ -20,6 +20,7 @@ Head = Id
 ExtraDoc = [Examples: Example ...]
          | [Accumulator: Id : RawText]
          | [Generative: RawText]
+         | [Effects: RawText]
 
 UnionType = Type
           | TypeOption TypeOption ...
