@@ -6,7 +6,7 @@ potential forms:
 ```text
 Expr = ... ; From Racket
      | (define-docs Head
-         [Signature: UnionType]
+         [Signature: Type]
          [Purpose: RawText]
          ExtraDoc ...)
      | (define-data Id
