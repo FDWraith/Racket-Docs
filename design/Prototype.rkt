@@ -28,8 +28,8 @@
 (define-data OpChain
   [: - (cons Number '())
      - (cons Number (cons Operator OpChain))]
-  [Purpose: A combination of infix operators and numbers,
-            without parenthesis.]
+  [Purpose: A combination of infix operators and
+            numbers, without parenthesis.]
   [Examples:
    4 <= (cons 4 '())
    1 + 2 * 3 <=
@@ -41,8 +41,8 @@
      - '-
      - '*
      - '/]
-  [Purpose: A mathematical operator, describes how 2 numbers
-            are combined.])
+  [Purpose: A mathematical operator, describes how
+            2 numbers are combined.])
 
 ; ------------------------------------------------------------------------------
 
