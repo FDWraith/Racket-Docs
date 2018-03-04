@@ -12,7 +12,7 @@ Expr = ... ; From Racket
      | (define-data Id
          [: UnionType]
          [Interpretation: RawText]
-         ExtraDoc ...) ; No ExtraDoc repeats
+         DataExtraDoc ...) ; No ExtraDoc repeats
 
 Head = Id
      | (Id Id ...)
@@ -21,6 +21,8 @@ ExtraDoc = [Examples: Example ...]
          | [Accumulator: Id : RawText]
          | [Generative: RawText]
          | [Effects: RawText]
+
+DataExtraDoc = [Examples: DataExample ...]
 
 UnionType = Type
           | TypeOption TypeOption ...
@@ -34,9 +36,10 @@ Type = Id
      | [Type Type ...]
      | Type ... -> Type
 
-Example = Expr
-        | Expr => Expr
-        | RawText <= Expr
+Example = Expr => Expr
+
+DataExample = Expr
+            | RawText <= Expr
 
 #|
 RawText doesn't follow traditional Racket syntax - it's similar to
