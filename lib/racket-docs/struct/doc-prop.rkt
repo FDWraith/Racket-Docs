@@ -1,4 +1,4 @@
-#lang racket
+#lang typed/racket
 
 (provide [struct-out doc-prop]
          type-doc-prop
@@ -14,7 +14,10 @@
          prop-type->string
          check-shared-types)
 
-(struct doc-prop [type value] #:transparent)
+(define-type Doc-Prop-Type
+  [U 'type 'desc 'examples 'accumulator 'generative 'effects])
+
+(struct doc-prop [(type : Doc-Prop-Type) (value : Any)] #:transparent)
 
 (define (type-doc-prop type)
   (doc-prop 'type type))
@@ -44,5 +47,6 @@
 
 (define prop-type->string symbol->string)
 
+(: check-shared-types : [Listof doc-prop] -> (U Doc-Prop-Type #false))
 (define (check-shared-types props)
   (check-duplicates (map doc-prop-type props)))

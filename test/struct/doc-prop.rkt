@@ -1,6 +1,6 @@
 #lang racket
 
-(require "../../lib/struct/doc-prop.rkt"
+(require "../../lib/racket-docs/struct/doc-prop.rkt"
          rackunit)
 
 (define ex1 (type-doc-prop '[Int -> String]))

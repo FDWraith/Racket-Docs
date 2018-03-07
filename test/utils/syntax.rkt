@@ -1,8 +1,8 @@
 #lang racket
 
-(require [for-syntax "../../lib/utils/syntax.rkt"
+(require [for-syntax "../../lib/racket-docs/utils/syntax.rkt"
                      syntax/parse]
-         "../../lib/utils/syntax.rkt"
+         "../../lib/racket-docs/utils/syntax.rkt"
          rackunit)
 
 (begin-for-syntax

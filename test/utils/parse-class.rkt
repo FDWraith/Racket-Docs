@@ -1,6 +1,6 @@
 #lang racket
 
-(require [for-syntax "../../lib/utils/parse-class.rkt"
+(require [for-syntax "../../lib/racket-docs/utils/parse-class.rkt"
                      syntax/parse]
          rackunit)
 

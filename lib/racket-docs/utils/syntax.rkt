@@ -23,12 +23,10 @@
 ; {X} [Stx [Listof [Listof X]]] -> [Stx [Listof X]]
 ; Flattens the list within the syntax.
 (define (flatten/stx stx)
-  (datum->syntax stx
-                 (foldr append '()
-                        (map syntax-e
-                             (syntax-e stx)))))
+  (datum->syntax stx (foldr append '()
+                            (map syntax-e
+                                 (syntax-e stx)))))
 
-; Any Any -> Bool
 ; Whether the given values are equal, but if both values are syntax objects,
 ; their syntax information is strict and only their datum values are compared.
 (define (equal-datum? x y)

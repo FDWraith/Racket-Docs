@@ -11,17 +11,22 @@
          "../utils/syntax.rkt"
          "../utils/parse-class.rkt"
          syntax/parse
-         [for-template turnstile])
+         [for-template typed/racket])
 
-(define-parse-class head
-  [id:id this-syntax]
-  [(id:id arg:id ...) this-syntax])
+(define-syntax-class head
+  [pattern id:id]
+  [pattern (id:id arg:id ...)])
 
-(define-parse-class union-type
+(define-splicing-parse-class union-type
   #:datum-literals (-)
-  [out:type this-syntax]
-  [((~seq - sub-type:type) ...)
-   #'[Union sub-type ...]])
+  [(~seq (~seq - ~! sub-type:type) ...+)
+   #`[U #,@(parse-classes (sub-type ...))]]
+  [x:type (parse-class x)])
+
+(define-splicing-parse-class type
+  #:datum-literals (->)
+  [(~seq i ... -> o ...) #'[i ... -> o ...]]
+  [x #'x])
 
 ;type imported from turnstile
 

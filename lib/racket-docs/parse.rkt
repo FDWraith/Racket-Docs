@@ -1,4 +1,4 @@
-#lang turnstile
+#lang typed/racket
 
 (provide define-docs
          define-data
@@ -17,12 +17,13 @@
         [Signature: sig:type]
         [Purpose: purpose:raw-text]
         extra-prop:extra-doc-prop ...)
+     (define sig+ (parse-class sig))
      (add-doc! #'head.id
-               (list* (sig-doc-prop #'sig)
+               (list* (sig-doc-prop sig+)
                       (purpose-doc-prop (parse-class purpose))
                       (parse-classes (extra-prop ...)))
                'define-docs stx #'(extra-prop ...))
-     #'(void)]))
+     #`(: head.id : #,sig+)]))
 
 (define-syntax (define-data stx)
   (syntax-parse stx
@@ -31,12 +32,13 @@
         [: type:union-type]
         [Interpretation: interpretation:raw-text]
         extra-prop:extra-data-doc-prop ...)
+     (define type+ (parse-class type))
      (add-doc! #'id
-               (list* (type-doc-prop #'type)
+               (list* (type-doc-prop type+)
                       (interpretation-doc-prop (parse-class interpretation))
                       (parse-classes (extra-prop ...)))
                'define-data stx #'(extra-prop ...))
-     #'(void)])) ; TODO replace (void) with type definition
+     #`(define-type id #,type+)])) ; FAR-TODO Add support for type constructors
 
 (begin-for-syntax
   (define cur-entries '())
@@ -52,5 +54,7 @@
 
 (define-syntax get-all-docs
   (mk-id-macro
-   (define all-docs cur-entries)
+   ; cur-entries are ordered from bottom of file to top.
+   ; User expects entries to be ordered from top of file to bottom.
+   (define all-docs (reverse cur-entries))
    #`'#,(datum->syntax #false all-docs)))
