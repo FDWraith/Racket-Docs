@@ -1,34 +1,35 @@
 #lang racket
 
-(require [for-syntax "../../lib/racket-docs/utils/syntax.rkt"
-                     syntax/parse]
+(require [for-syntax "../../lib/racket-docs/utils/syntax.rkt"]
          "../../lib/racket-docs/utils/syntax.rkt"
+         syntax/parse
          rackunit)
-
-(begin-for-syntax
-  (define-syntax-class test-class
-    [pattern ((~datum 1+) x)
-             #:attr attr (add1 (syntax-e #'x))]
-    [pattern ((~datum 1-) x)
-             #:attr attr (sub1 (syntax-e #'x))]))
-
-(define-syntax (test stx)
-  (syntax-parse stx
-    [(_ x:test-class ...)
-     (datum->syntax stx (foldl + 0 (attributes (x.attr ...))))]))
 
 (define-syntax one (mk-id-macro #'1))
 
 (struct foo-box [x] #:transparent)
-
-(check-equal? (test (1+ 1) (1- 2) (1+ 3)) 7)
-(check-equal? (test (1- 1) (1+ 2) (1- 3)) 5)
 
 (check-equal? (+ one 3.5) 4.5)
 
 (check-equal? (syntax->datum (flatten/stx #'((a b c) (d) (e f))))
               (syntax->datum #'(a b c d e f)))
 
+(check-equal?
+ (syntax->datum
+  (syntax-parse #'(#:description "hello" #:datum-literals (foo bar baz) 5)
+    [(x:stxclass-option ... y) #'(x ... ((y)))]))
+ (syntax->datum
+  #'((#:description "hello") (#:datum-literals (foo bar baz)) ((5)))))
+(check-not-exn
+ (λ () (syntax-parse #'(foo foo)
+         [(x (~var _ (temp-matches #'x))) #'ok])))
+(check-not-exn
+ (λ () (syntax-parse #'(foo _)
+         [(x (~var _ (temp-matches #'x))) #'ok])))
+(check-exn
+ exn:fail?
+ (λ () (syntax-parse #'(foo bar)
+         [(x (~var _ (temp-matches #'x))) #'ok])))
 (check-true (equal-datum? #'foo #'foo))
 (check-false (equal-datum? #'foo #'bar))
 (check-true (equal-datum? 'foo 'foo))

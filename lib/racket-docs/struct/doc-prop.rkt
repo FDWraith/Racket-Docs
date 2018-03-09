@@ -3,9 +3,11 @@
 (provide [struct-out doc-prop]
          type-doc-prop
          sig-doc-prop
+         syntax-doc-prop
          desc-doc-prop
-         purpose-doc-prop
          interpretation-doc-prop
+         purpose-doc-prop
+         semantics-doc-prop
          examples-doc-prop
          accumulator-doc-prop
          generative-doc-prop
@@ -15,7 +17,13 @@
          check-shared-types)
 
 (define-type Doc-Prop-Type
-  [U 'type 'desc 'examples 'accumulator 'generative 'effects])
+  [U 'type
+     'syntax
+     'desc
+     'examples
+     'accumulator
+     'generative
+     'effects])
 
 (struct doc-prop [(type : Doc-Prop-Type) (value : Any)] #:transparent)
 
@@ -24,12 +32,17 @@
 
 (define sig-doc-prop type-doc-prop)
 
+(define (syntax-doc-prop syntax)
+  (doc-prop 'syntax syntax))
+
 (define (desc-doc-prop desc)
   (doc-prop 'desc desc))
 
+(define interpretation-doc-prop desc-doc-prop)
+
 (define purpose-doc-prop desc-doc-prop)
 
-(define interpretation-doc-prop desc-doc-prop)
+(define semantics-doc-prop desc-doc-prop)
 
 (define (examples-doc-prop examples)
   (doc-prop 'examples examples))

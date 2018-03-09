@@ -2,13 +2,13 @@
 
 (require [for-syntax "../lib/racket-docs/struct.rkt"
                      "../lib/racket-docs/utils.rkt"
-                     typed/racket/no-check]
+                     syntax/parse]
          "../lib/racket-docs/parse.rkt"
          "../lib/racket-docs/utils.rkt"
          typed/rackunit
          typed/racket/unsafe)
 ; Needs to be unsafe - otherwise it would say "higher-order value can't be Any"
-(unsafe-require/typed "../lib/racket-docs/utils.rkt"
+(unsafe-require/typed "../lib/racket-docs current/utils.rkt"
                       [equal-datum? [Any Any -> Boolean]])
 
 (define-data Foo
@@ -42,6 +42,22 @@
   [Effects: "No effects"])
 (define (foo-cons x y)
   (error "Not implemented"))
+
+(define-docs append-id
+  [Syntax: (append-id id:id ...+)]
+  [Semantics: "Appends the @id@s together."]
+  [Examples:
+   (let [(hello-world 5)] (append-id hello world)) => 5
+   (let [(hello 5)] (append-id hello)) => 5
+   (let [(a-b-c 10)] (append-id a b c)) => 10])
+(define-syntax (append-id stx)
+  (syntax-parse stx
+    [(_ id:id ...+)
+     (datum->syntax stx
+                    (string->symbol
+                     (foldr string-append ""
+                            (map symbol->string
+                                 (syntax->datum #'(id ...))))))]))
 
 (define-for-syntax expected-docs
   (list
@@ -81,7 +97,18 @@
                (list (eval-example #'(foo-cons 1 '()) #''(1))
                      (eval-example #'(foo-cons "Hello" '("World" "!"))
                                    #''("Hello" "World" "!"))))
-     (doc-prop 'effects "No effects")))))
+     (doc-prop 'effects "No effects")))
+   (doc-entry
+    #'append-id
+    (list
+     (doc-prop 'syntax #'(append-id id:id ...+))
+     (doc-prop 'desc "Appends the @id@s together.")
+     (doc-prop 'examples
+               (list (eval-example
+                      #'(let [(hello-world 5)] (append-id hello world)) #'5)
+                     (eval-example #'(let [(hello 5)] (append-id hello)) #'5)
+                     (eval-example #'(let [(a-b-c 10)] (append-id a b c))
+                                   #'10)))))))
 
 (define-syntax get-all-expected-docs
   (mk-id-macro #`'#,(datum->syntax #false expected-docs)))
