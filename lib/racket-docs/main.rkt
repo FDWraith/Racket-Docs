@@ -11,3 +11,4 @@
          define-syntax/docs)
 
 (require "parse.rkt")
+(require "compile.rkt")
