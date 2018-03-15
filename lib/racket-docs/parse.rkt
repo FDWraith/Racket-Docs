@@ -21,19 +21,11 @@
                      syntax/parse])
 
 (begin-for-syntax
-  (define-docs cur-entries
+  #;(define-docs cur-entries
     [Signature: [Listof doc-entry]]
     [Purpose: "The documentation entries parsed so far, in reverse order"])
   (define cur-entries '())
-
-  (define-docs (add-doc! entry caller stx shared-stx)
-    [Signature: doc-entry Symbol Syntax Syntax -> (void)]
-    [Purpose: #<<"
-First checks that @entry doen't have any duplicate types. If it has duplicate
-types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
-@entry to @cur-entries, tracking it.
-"
-              ])
+  
   (define (add-doc! entry caller stx shared-stx)
     (define shared-type (check-shared-types (doc-entry-props entry)))
     (when shared-type

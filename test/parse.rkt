@@ -8,7 +8,7 @@
          typed/rackunit
          typed/racket/unsafe)
 ; Needs to be unsafe - otherwise it would say "higher-order value can't be Any"
-(unsafe-require/typed "../lib/racket-docs current/utils.rkt"
+(unsafe-require/typed "../lib/racket-docs/utils.rkt"
                       [equal-datum? [Any Any -> Boolean]])
 
 (define-data Foo
@@ -101,7 +101,7 @@
    (doc-entry
     #'append-id
     (list
-     (doc-prop 'syntax #'(append-id id:id ...+))
+     (doc-prop 'syntax #'((append-id id:id ...+)))
      (doc-prop 'desc "Appends the @id@s together.")
      (doc-prop 'examples
                (list (eval-example

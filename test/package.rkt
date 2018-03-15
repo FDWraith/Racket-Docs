@@ -1,4 +1,4 @@
-#lang racket-docs
+#lang racket-docs2
 
 (define-docs hello
   [Signature: String/False]
