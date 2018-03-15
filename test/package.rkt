@@ -1,4 +1,4 @@
-#lang racket-docs2
+#lang racket-docs
 
 (define-docs hello
   [Signature: String/False]
@@ -20,3 +20,10 @@
 (define-docs provide
   [Syntax: (provide identifier ...)]
   [Semantics: "Exports @identifier, so other modules can import it."])
+
+#;(begin-for-syntax
+  (define-docs phase1-val
+    [Signature: Int]
+    [Purpose: "A value which could be used by macros"]
+    [Examples: phase1-val => 5])
+  (define phase1-val 5))

@@ -114,10 +114,10 @@ If documenting a value, also assignes the documented type.
         extra-prop:extra-doc-prop ...)
      (define sig+ (parse-class sig))
      (define entry
-       (doc-entry #'head.id
-                  (list* (sig-doc-prop sig+)
-                         (purpose-doc-prop (parse-class purpose))
-                         (parse-classes (extra-prop ...)))))
+       (val-doc-entry #'head.id
+                      (list* (sig-doc-prop sig+)
+                             (purpose-doc-prop (parse-class purpose))
+                             (parse-classes (extra-prop ...)))))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
      #`(: head.id : #,sig+)]
     [(_ id:id
@@ -125,10 +125,10 @@ If documenting a value, also assignes the documented type.
         [Semantics: semantics:raw-text]
         extra-prop:extra-doc-prop ...)
      (define entry
-       (doc-entry #'id
-                  (list* (syntax-doc-prop #'(stx-case ...))
-                         (semantics-doc-prop (parse-class semantics))
-                         (parse-classes (extra-prop ...)))))
+       (macro-doc-entry #'id
+                        (list* (syntax-doc-prop #'(stx-case ...))
+                               (semantics-doc-prop (parse-class semantics))
+                               (parse-classes (extra-prop ...)))))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
      #'(void)]))
 
@@ -148,10 +148,11 @@ If documenting a value, also assignes the documented type.
         extra-prop:extra-data-doc-prop ...)
      (define type+ (parse-class type))
      (define entry
-       (doc-entry #'id
-                  (list* (type-doc-prop type+)
-                         (interpretation-doc-prop (parse-class interpretation))
-                         (parse-classes (extra-prop ...)))))
+       (type-doc-entry
+        #'id
+        (list* (type-doc-prop type+)
+               (interpretation-doc-prop (parse-class interpretation))
+               (parse-classes (extra-prop ...)))))
      (add-doc! entry 'define-data stx #'(extra-prop ...))
      #`(define-type id #,type+)])) ; Long-Term TODO: Add type constructors
 
