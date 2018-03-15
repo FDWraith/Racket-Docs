@@ -8,7 +8,6 @@
                      define-syntax/docs]
          define-docs
          define-data
-         define-syntax/docs
-         compile-docs)
+         define-syntax/docs)
 
 (require "parse.rkt")

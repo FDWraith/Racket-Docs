@@ -62,6 +62,7 @@
 (define-for-syntax expected-docs
   (list
    (doc-entry
+    'type
     #'Foo
     (list
      (doc-prop 'type #'Any)
@@ -74,6 +75,7 @@
        (plain-data-example #'7)
        (interpret-data-example #''() "Empty List")))))
    (doc-entry
+    'type
     #'Bar
     (list
      (doc-prop 'type #'[U Integer String])
@@ -84,11 +86,13 @@
        (plain-data-example #'5)
        (interpret-data-example #'"H" "\"H\"")))))
    (doc-entry
+    'value
     #'foo
     (list
      (doc-prop 'type #'Integer)
      (doc-prop 'desc "Something")))
    (doc-entry
+    'value
     #'foo-cons
     (list
      (doc-prop 'type #'[Foo [Listof Foo] -> Foo])
@@ -99,6 +103,7 @@
                                    #''("Hello" "World" "!"))))
      (doc-prop 'effects "No effects")))
    (doc-entry
+    'macro
     #'append-id
     (list
      (doc-prop 'syntax #'((append-id id:id ...+)))
