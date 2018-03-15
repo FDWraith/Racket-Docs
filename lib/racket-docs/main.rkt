@@ -12,3 +12,4 @@
          compile-docs)
 
 (require "parse.rkt")
+(require "compile.rkt")
