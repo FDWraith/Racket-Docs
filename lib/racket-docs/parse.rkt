@@ -25,7 +25,15 @@
     [Signature: [Listof doc-entry]]
     [Purpose: "The documentation entries parsed so far, in reverse order"])
   (define cur-entries '())
-  
+
+  #;(define-docs (add-doc! entry caller stx shared-stx)
+      [Signature: doc-entry Symbol Syntax Syntax -> (void)]
+      [Purpose: #<<"
+First checks that @entry doen't have any duplicate types. If it has duplicate
+types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
+@entry to @cur-entries, tracking it.
+"
+                ])
   (define (add-doc! entry caller stx shared-stx)
     (define shared-type (check-shared-types (doc-entry-props entry)))
     (when shared-type
@@ -43,29 +51,24 @@
           [Purpose: purpose:raw-text]
           extra-prop:extra-doc-prop ...)
        #:with stx #`#'#,stx
-       #:with sig+ (parse-class sig)
-       #:with purpose+ #'purpose ; TODO Fix error with (parse-class purpose)
-       #:with (extra-prop+ ...) (parse-classes (extra-prop ...))
        #'(begin
            (define entry
-             (doc-entry #'head.id
-                        (list (sig-doc-prop #'sig+)
-                              (purpose-doc-prop purpose+)
-                              extra-prop+ ...)))
+             (val-doc-entry #'head.id
+                            (list (sig-doc-prop #'sig.out1)
+                                  (purpose-doc-prop purpose.out1)
+                                  extra-prop.out1 ...)))
            (add-doc! entry 'define-docs stx #'(extra-prop ...)))]
       [(_ id:id
           [Syntax: stx-case ...] ~!
           [Semantics: semantics:raw-text]
           extra-prop:extra-doc-prop ...)
        #:with stx #`#'#,stx
-       #:with semantics+ (parse-class semantics)
-       #:with (extra-prop+ ...) (parse-classes (extra-prop ...))
        #'(begin
            (define entry
-             (doc-entry #'id
-                        (list (syntax-doc-prop #'(stx-case ...))
-                              (semantics-doc-prop semantics+)
-                              extra-prop+ ...)))
+             (macro-doc-entry #'id
+                              (list (syntax-doc-prop #'(stx-case ...))
+                                    (semantics-doc-prop semantics.out1)
+                                    extra-prop.out1 ...)))
            (add-doc! entry 'define-docs stx #'(extra-prop ...)))]))
 
   ; See phase 0 definition for docs
@@ -76,14 +79,13 @@
           [: type:union-type]
           [Interpretation: interpretation:raw-text]
           extra-prop:extra-data-doc-prop ...)
-       #:with type+ (parse-class type)
        #'(begin
            (define entry
-             (doc-entry #'id
-                        (list* (type-doc-prop #'type+)
-                               (interpretation-doc-prop
-                                (parse-class interpretation))
-                               (parse-classes (extra-prop ...)))))
+             (type-doc-entry
+              #'id
+              (list* (type-doc-prop #'type.out1)
+                     (interpretation-doc-prop interpretation.out1)
+                     extra-prop.out1 ...)))
            (add-doc! entry 'define-data stx #'(extra-prop ...)))]))
 
   ; See phase 0 definition for docs

@@ -21,7 +21,7 @@
   [Syntax: (provide identifier ...)]
   [Semantics: "Exports @identifier, so other modules can import it."])
 
-#;(begin-for-syntax
+(begin-for-syntax
   (define-docs phase1-val
     [Signature: Int]
     [Purpose: "A value which could be used by macros"]
