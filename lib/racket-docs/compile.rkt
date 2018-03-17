@@ -1,5 +1,8 @@
 #lang typed/racket
 
+(require "struct.rkt"
+         "utils.rkt")
+
 ;; Figure out where this compile-time function is being called from ???
 (define out (open-output-file "hello.scrbl"))
 (write "hello world" out)
@@ -14,14 +17,17 @@
     (map (compose print/s compile-doc-entry) all-docs))))
 
 
-; Doc-Entry -> String
+; DocEntry -> String
 ; Compiles the document entry to valid Scribble line(s)
 (define (compile-doc-entry ent)
-  (cond
-    [(doc-data? ent) (compile-doc-data ent)]
-    [(doc-func? ent) (compile-doc-func ent)]))
+  (local
+    ((define ent-type (doc-entry-type ent)))
+    (cond
+      [(symbol=? ent-type 'type) (compile-doc-data ent)]
+      [(symbol=? ent-type 'value) (compile-doc-const ent)]
+      [(symbol=? ent-type 'macro) (compile-doc-func ent)])))
 
-; Doc-Data -> String
+; DocEntry -> String
 ; Compiles Data Definitions to valid Scribble line(s)
 (define (compile-doc-data dat)
   (local
