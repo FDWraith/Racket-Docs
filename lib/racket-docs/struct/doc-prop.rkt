@@ -14,7 +14,8 @@
          effects-doc-prop
          prop-type=?
          prop-type->string
-         check-shared-types)
+         check-shared-types
+         Doc-Prop-Type)
 
 (define-type Doc-Prop-Type
   [U 'type
