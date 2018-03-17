@@ -6,7 +6,8 @@
          mk-id-macro
          map/stx
          flatten/stx
-         equal-datum?)
+         equal-datum?
+         syntax->string)
 
 (require [for-syntax syntax/parse]
          syntax/parse)
@@ -61,3 +62,30 @@
     [(and (syntax? x) (syntax? y))
      (equal-datum? (syntax->datum x) (syntax->datum y))]
     [else (equal?/recur x y equal-datum?)]))
+
+; Syntax -> String
+; converts a piece of syntax to a string
+(define (syntax->string stx)
+  (local
+    (; Syntax -> Boolean
+     ; Determines if a Syntax is a constant
+     (define (const? exp)
+       (not (list? (syntax->datum exp))))
+     ; Boolean -> String
+     ; converts a boolean to a String
+     (define (boolean->string b)
+       (if b "#t" "#f"))
+     ; Datum -> String
+     ; Converts a datum to a String
+     (define (stringify exp)
+       (cond
+         [(symbol? exp) (symbol->string exp)]
+         [(number? exp) (number->string exp)]
+         [(boolean? exp) (boolean->string exp)]
+         [(list? exp) (string-append "(" (string-join (map stringify exp) " ") ")")]
+         [else (error "datum cannot be turned to string")])))
+    (cond
+      [(const? stx) (stringify (syntax->datum stx))]
+      [else (string-append
+             "(" (string-join (map (compose stringify syntax->datum) (syntax->list stx)) " ")
+             ")")])))

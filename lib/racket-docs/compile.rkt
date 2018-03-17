@@ -2,9 +2,11 @@
 
 (require "struct.rkt")
 (require/typed "struct.rkt"
-               [#:struct doc-entry ([type : (U 'value 'macro 'type)] [id : Any] [props : [Listof doc-prop]])]
+               [#:struct doc-entry [(type : (U 'type 'macro 'value)) (id : Any) (props : [Listof doc-prop])]]
                )
-
+(require/typed "utils.rkt"
+               [syntax->string [Any -> String]]
+               )
 
 #|
 ;; Figure out where this compile-time function is being called from ???
@@ -14,13 +16,14 @@
 |#
 
 ; Effect: Generates a Scribble File from the documentation
-(: compile-docs (-> Any Void))
+(: compile-docs (-> (Listof doc-entry) Void))
 (define (compile-docs all-docs)
   (local
-    ((define out (open-output-file "hello.scrbl"))
-     (define (print/s arg) (print arg out)))
-    #;(map (compose print/s compile-doc-entry) all-docs)
-    (void)))
+    ((define out (open-output-file "hello.scrbl" #:exists 'truncate/replace)))
+    (begin
+      (display "#lang scribble/manual" out)
+      (display (string-join (map compile-doc-entry all-docs) "\n") out)
+      (close-output-port out))))
 
 
 ; DocEntry -> String
@@ -43,15 +46,18 @@
      (define dat-body (doc-entry-props dat))
      (define type-prop? (mk-prop? 'type))
      (define type-prop (extract type-prop? dat-body))
-     (define type (if (empty? type-prop)
-                      (error "type not found")
-                      (doc-prop-value type-prop)))
+     (define type
+       (cond
+         [(doc-prop? type-prop) (syntax->string (doc-prop-value type-prop))]
+         [else (error "type not found")]))
      (define desc-prop? (mk-prop? 'desc))
      (define desc-prop (extract desc-prop? dat-body))
      (define desc (if (empty? desc-prop)
                       ""
-                      (doc-prop-value desc-prop))))
-    ""))
+                      (syntax->string (doc-prop-value desc-prop))))
+     (define example-prop? (mk-prop? 'examples))
+     (define example-prop (extract example-prop? dat-body)))
+    (string-append "Type:" type "\n" "Interpretation:" desc)))
 
 ; DocEntry -> String
 ; Compiles Constants to valid Scribble line(s)
@@ -63,6 +69,12 @@
 ; Compiles Functions to valid Scribble line(s)
 (: compile-doc-func (-> doc-entry String))
 (define (compile-doc-func ent)
+  "")
+
+; DocEntry -> String
+; Compiles Macros to valid Scribble line(s)
+(: compile-doc-macro (-> doc-entry String))
+(define (compile-doc-macro ent)
   "")
 
 
@@ -79,7 +91,12 @@
 ; Returns an empty list if no such element is found
 (: extract (-> (-> doc-prop Boolean) [Listof doc-prop] (U doc-prop '())))
 (define (extract pred lst)
-  '())
-    
+  (cond
+    [(empty? lst) lst]
+    [else (let ([fst (first lst)])
+            (if (pred fst) fst (extract pred (rest lst))))]))
+
+
+
 
 
