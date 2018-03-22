@@ -1,5 +1,7 @@
 #lang typed/racket
 
+#|
+
 ;; Figure out where this compile-time function is being called from ???
 (define out (open-output-file "hello.scrbl"))
 (write "hello world" out)
@@ -11,7 +13,7 @@
   (local
     ((define out (open-output-file "hello.scrbl"))
      (define (print/s arg) (print arg out)))
-    (map (compose print/s compile-doc-entry) all-docs))))
+    (map (compose print/s compile-doc-entry) all-docs)))
 
 
 ; Doc-Entry -> String
@@ -29,5 +31,4 @@
      (define dat-body (doc-entry-props dat)))
     ...))
     
-
-
+|#

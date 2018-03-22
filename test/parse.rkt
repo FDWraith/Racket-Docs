@@ -1,15 +1,11 @@
-#lang typed/racket
+#lang racket
 
 (require [for-syntax "../lib/racket-docs/struct.rkt"
                      "../lib/racket-docs/utils.rkt"
                      syntax/parse]
          "../lib/racket-docs/parse.rkt"
          "../lib/racket-docs/utils.rkt"
-         typed/rackunit
-         typed/racket/unsafe)
-; Needs to be unsafe - otherwise it would say "higher-order value can't be Any"
-(unsafe-require/typed "../lib/racket-docs/utils.rkt"
-                      [equal-datum? [Any Any -> Boolean]])
+         rackunit)
 
 (define-data Foo
   [: Any]

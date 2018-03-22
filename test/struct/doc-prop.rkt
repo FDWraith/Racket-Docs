@@ -13,7 +13,7 @@
 (check-equal? (check-shared-types (list ex1 ex2 ex3))
               'type)
 (check-equal? (check-shared-types (list ex3 ex4))
-              'purpose)
+              'desc)
 (check-equal? (check-shared-types (list ex1))
               #false)
 (check-equal? (check-shared-types (list))
