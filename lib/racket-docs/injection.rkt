@@ -1,4 +1,4 @@
-#lang racket
+#lang racket-docs
 (begin-for-syntax
   (displayln "Compiling docs ...")
 

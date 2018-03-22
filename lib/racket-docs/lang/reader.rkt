@@ -26,7 +26,7 @@ racket-docs
   (define text-port-name (send definitions-text get-port-name))
   (define reg-text-port (open-input-string text text-port-name))
   (define injection-port (open-input-file docs-injection-path))
-  (read-line injection-port) ; Gets rid of #lang racket, used for reference.
+  (read-line injection-port) ; Gets rid of #lang, used for syntax checking.
   (define text-port (input-port-append #true reg-text-port injection-port))
   (port-count-lines! text-port)
 
