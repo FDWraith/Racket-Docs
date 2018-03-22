@@ -2,7 +2,8 @@
 
 (provide [except-out [all-from-out racket]
                      read
-                     read-syntax]
+                     read-syntax
+                     read-language]
          [for-syntax define-docs
                      define-data
                      define-syntax/docs]
