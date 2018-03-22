@@ -83,6 +83,17 @@ but not (cons \"Z\" 7), (foo \"?\" \"E\"), or 'alskdj.
 "
              <= (expr `(cons ,String ,String))])
 
+#;(define-docs (expr? x)
+    [Signature: Type -> Bool]
+    [Purpose: "Whether x is an expression type."]
+    [Examples:
+     (expr? String) => #false
+     (expr? 'a) => #true
+     (expr? `(a ,String) => #true)])
+(define (expr? x)
+  (or (symbol? x)
+      (list? x)))
+
 #;(define-docs define-type
     [Syntax: (define-type defd:id defn)]
     [Semantics: #<<"
@@ -182,7 +193,8 @@ is an instance of type.
 (define-syntax assign-type/parsed
   (syntax-parser
     [(_ val:id type)
-     #'(void)])) ; TODO Actually assign the type - make it a syntax property?
+     ; TODO Actually assign the type - make it a syntax property?
+     #'(printf "Assigned type: ~a\n" type)]))
 
 ; TODO parse-type - Parses the type.
 ; Converts every lowercase identifier into a symbol,
@@ -210,20 +222,21 @@ Leaves identifiers not starting with lowercase characters as-is
     (syntax-parser
       [x:id
        (cond
-         [(type-identifier? #'id) #'id]
-         [else #''id])]
+         [(type-identifier? #'x) #'x]
+         [else #''x])]
       ['x #''x]
       [(head param ...)
+       #:with head+ (parse-type #'head)
        #:with (param+ ...) (map/stx parse-type #'(param ...))
        (cond
-         [(expr? (syntax-e #'head)) #'(list head param+ ...)]
-         [else #'(head param+ ...)])]
+         [(expr-stx? #'head+) #'(list head+ param+ ...)]
+         [else #'(head+ param+ ...)])]
       [x #'x])) ; Numbers, booleans, etc. All expression types.
 
   #;(define-docs (type-identifier? id-stx)
       [Signature: Identifier -> Bool]
       [Purpose: #<<"
-Whether x directly refers to  type - specifically,
+Whether x directly refers to type - specifically,
 whether x doesn't start with a lowercase character.
 Otherwise, it will be parsed into an expression type.
 "
@@ -234,16 +247,19 @@ Otherwise, it will be parsed into an expression type.
   (define (type-identifier? id-stx)
     (not (char-lower-case? (string-ref (symbol->string (syntax-e id-stx)) 0))))
 
-  #;(define-docs (expr? x)
-    [Signature: Type -> Bool]
-    [Purpose: "Whether x is an expression type."]
-    [Examples:
-     (expr? String) => #false
-     (expr? 'a) => #true
-     (expr? `(a ,String) => #true)])
-  (define (expr? x)
-    (or (symbol? x)
-        (list? x))))
+  #;(define-docs (expr-stx? stx)
+      [Signature: Syntax -> Bool]
+      [Purpose: "Whether the syntax encodes an expression type."]
+      [Examples:
+       (expr-stx? #'String) => #false
+       (expr-stx? #''foo) => #true
+       (expr-stx? #'[-> Int String]) => #false
+       (expr-stx? #'`(a b ,Int)) => #true])
+  (define expr-stx?
+    (syntax-parser
+      ['_ #true]
+      [((~literal list) _ ...) #true]
+      [_ #false])))
 
 #;(define-docs [Union . Xs]
     [Signature: [Type ... -> UnionType]]
@@ -262,7 +278,7 @@ param types, and the last parameter as the output type.
     [Examples: [-> String Bool] => (func (list String) Bool)])
 (define-type/parsed (-> arg . rest-args)
   (define args (cons arg rest-args))
-  (define-values (params out) (split-at-right 1 args))
+  (define-values (params out) (split-at-right args 1))
   (func params out))
   
 (define-type/primitive Bool)

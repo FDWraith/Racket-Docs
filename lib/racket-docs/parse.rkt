@@ -17,9 +17,9 @@
                      "parse/classes.rkt"
                      "parse/errors.rkt"
                      "struct.rkt"
-                     "types.rkt"
                      "utils.rkt"
-                     syntax/parse])
+                     syntax/parse]
+         "types.rkt")
 
 (begin-for-syntax
   #;(define-docs cur-entries
