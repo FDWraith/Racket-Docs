@@ -6,7 +6,8 @@
                      read-language]
          [for-syntax define-docs
                      define-data
-                     define-syntax/docs]
+                     define-syntax/docs
+                     get-all-docs]
          define-docs
          define-data
          define-syntax/docs

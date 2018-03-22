@@ -2,7 +2,8 @@
 
 (provide [for-syntax define-docs
                      define-data
-                     define-syntax/docs]
+                     define-syntax/docs
+                     get-all-docs]
          define-docs
          define-data
          define-syntax/docs
@@ -91,7 +92,21 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
 
   ; See phase 0 definition for docs
   (define-syntax define-syntax/docs
-    (gen-define-syntax/docs #'define-docs)))
+    (gen-define-syntax/docs #'define-docs))
+
+  ; See phase 0 definition for docs
+  #;(define-docs get-all-docs
+      [Syntax: get-all-docs]
+      [Semantics: #<<"
+Returns all of the documentation entries as structures,
+in the order they were defined in the file.
+"
+                  ])
+  (define-syntax get-all-docs
+    (mk-id-macro
+     ; cur-entries are ordered from bottom of file to top.
+     ; User expects entries to be ordered from top of file to bottom.
+     #'(reverse cur-entries))))
 
 #;(define-docs define-docs
   [Syntax:
