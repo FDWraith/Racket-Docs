@@ -9,7 +9,7 @@
          define-docs
          define-data
          define-syntax/docs
-
+         
          ; Special types
          Union
          ->
@@ -27,4 +27,4 @@
 
 (require "parse.rkt")
 (require "types.rkt")
-;(require "compile.rkt")
+(require "compile.rkt")

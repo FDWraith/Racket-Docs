@@ -13,6 +13,8 @@
          Int
          Num
          String
+
+         ; Built-In Non-Primitive Types
          Listof
          Maybe)
 
