@@ -1,11 +1,17 @@
 #lang racket-docs
 (begin-for-syntax
-  (displayln "Compiling docs ...")
-
-  (compile-docs get-all-docs)
-  
-  (parameterize
+  #;(define-docs (stop msg)
+      [Signature: String -> Nothing]
+      [Purpose: "Exits the program, displaying the given message."])
+  (define (stop msg)
+    (parameterize
       [(error-display-handler
         (λ (msg fake-error)
           (displayln msg)))]
-    (error "Successfully compiled docs.")))
+     (error msg)))
+  
+  (displayln "Compiling docs ...")
+
+  (compile-docs)
+  
+  (stop "Successfully compiled docs."))
