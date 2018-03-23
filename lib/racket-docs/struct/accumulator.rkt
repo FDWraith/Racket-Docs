@@ -1,5 +1,11 @@
-#lang typed/racket
+#lang racket
 
 (provide [struct-out accumulator])
 
-(struct accumulator [(id : Syntax) (desc : String)] #:transparent)
+#;(define-data Accumulator
+    [: (accumulator Syntax Desc)]
+    [Interpretation: "Encodes an accumulator statement"]
+    [Examples:
+     "Accumulator: acc : The elements in x0 not in x, already reversed." <=
+     (accumulator #'acc "The elements in x0 not in x, already reversed.")])
+(struct accumulator [id desc])

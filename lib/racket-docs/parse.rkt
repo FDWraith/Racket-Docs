@@ -1,8 +1,9 @@
-#lang racket-docs3
+#lang racket
 
 (provide [for-syntax define-docs
                      define-data
-                     define-syntax/docs]
+                     define-syntax/docs
+                     get-all-docs]
          define-docs
          define-data
          define-syntax/docs
@@ -18,7 +19,8 @@
                      "parse/errors.rkt"
                      "struct.rkt"
                      "utils.rkt"
-                     syntax/parse])
+                     syntax/parse]
+         "types.rkt")
 
 (begin-for-syntax
   #;(define-docs cur-entries
@@ -90,9 +92,23 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
 
   ; See phase 0 definition for docs
   (define-syntax define-syntax/docs
-    (gen-define-syntax/docs #'define-docs)))
+    (gen-define-syntax/docs #'define-docs))
 
-(define-docs define-docs
+  ; See phase 0 definition for docs
+  #;(define-docs get-all-docs
+      [Syntax: get-all-docs]
+      [Semantics: #<<"
+Returns all of the documentation entries as structures,
+in the order they were defined in the file.
+"
+                  ])
+  (define-syntax get-all-docs
+    (mk-id-macro
+     ; cur-entries are ordered from bottom of file to top.
+     ; User expects entries to be ordered from top of file to bottom.
+     #'(reverse cur-entries))))
+
+#;(define-docs define-docs
   [Syntax:
    (define-docs head:head
      [Signature: sig:type]
@@ -121,7 +137,7 @@ If documenting a value, also assignes the documented type.
                              (purpose-doc-prop (parse-class purpose))
                              (parse-classes (extra-prop ...)))))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
-     #`(: head.id : #,sig+)]
+     #`(assign-type head.id #,sig+)]
     [(_ id:id
         [Syntax: stx-case ...]
         [Semantics: semantics:raw-text]
@@ -134,7 +150,7 @@ If documenting a value, also assignes the documented type.
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
      #'(void)]))
 
-(define-docs define-data
+#;(define-docs define-data
   [Syntax:
    (define-data id:id
      [: type:union-type]
@@ -158,7 +174,7 @@ If documenting a value, also assignes the documented type.
      (add-doc! entry 'define-data stx #'(extra-prop ...))
      #`(define-type id #,type+)])) ; Long-Term TODO: Add type constructors
 
-(define-docs define-syntax/docs
+#;(define-docs define-syntax/docs
   [Syntax:
    (define-syntax/docs id:id
      [Semantics: semantics:raw-text]
@@ -202,7 +218,7 @@ Automatically generates SYNTAX documentation from syntax-parse clauses.
 (define-syntax define-syntax/docs
   (gen-define-syntax/docs #'define-docs))
 
-(define-docs get-all-docs
+#;(define-docs get-all-docs
   [Syntax: get-all-docs]
   [Semantics: #<<"
 Returns all of the documentation entries as structures,

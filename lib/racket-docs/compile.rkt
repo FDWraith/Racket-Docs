@@ -101,7 +101,7 @@
 (define (mk-prop? type)
   (λ (prop) (prop-type=? type (doc-prop-type prop))))
 
-  
+
 ; [doc-prop -> Boolean] [Listof doc-prop] -> [U doc-prop '()]
 ; Returns the first element in the list that matches pred
 ; Returns an empty list if no such element is found
@@ -111,8 +111,3 @@
     [(empty? lst) lst]
     [else (let ([fst (first lst)])
             (if (pred fst) fst (extract pred (rest lst))))]))
-
-
-
-
-

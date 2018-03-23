@@ -1,4 +1,4 @@
-#lang typed/racket
+#lang racket
 
 (provide [all-from-out "struct/doc-entry.rkt"
                        "struct/doc-prop.rkt"
