@@ -1,27 +1,24 @@
 #lang racket
 
-(require (for-syntax "struct.rkt"
-                     "utils.rkt"
-                     "parse.rkt"
-                     racket
-                     syntax/parse))
+(require  "struct.rkt"
+          "utils.rkt"
+          "parse.rkt"
+          racket)
 
 (provide compile-docs)
 
 ; Effect: Generates a Scribble File from the documentation
-(define-syntax (compile-docs stx)
-  (syntax-parse stx
-    [(_ docs path)
-     (define entries (map compile-doc-entry (eval #'docs)))
-     (define ent-string (string-join entries "\n"))
-     #`(begin
-         (define out (open-output-file path #:exists 'truncate/replace))
-         (display "#lang scribble/manual\n" out)
-         (display #,ent-string out)
-         (close-output-port out))]))
+(define (compile-docs docs [path "temp.scrbl"])
+  (begin
+    (define entries (map compile-doc-entry docs))
+    (define ent-string (string-join entries "\n"))
+    (define out (open-output-file path #:exists 'truncate/replace))
+    (display "#lang scribble/manual\n" out)
+    (display ent-string out)
+    (close-output-port out)))
 
 ; Compiles the document entry to valid Scribble line(s)
-(define-for-syntax (compile-doc-entry ent)
+(define (compile-doc-entry ent)
   (begin
     (define ent-type (doc-entry-type ent))
     (define compiled (cond
@@ -31,7 +28,7 @@
     compiled))
 
 ; Compiles Data Definitions to valid Scribble line(s)
-(define-for-syntax (compile-doc-data dat)
+(define (compile-doc-data dat)
   (begin
     (define dat-type (syntax->string (doc-entry-id dat)))
     (define dat-body (doc-entry-props dat))
@@ -54,10 +51,13 @@
                    "Interpretation:" desc)))
 
 ; Compiles Functions to valid Scribble line(s)
-(define-for-syntax (compile-doc-func stx)
-  void)
+(define (compile-doc-func stx)
+  "function string here")
 
 ; Compiles Constants to valid Scribble line(s)
-(define-for-syntax (compile-doc-const stx)
-  void)
-     
+(define (compile-doc-const stx)
+  "something string here")
+
+; Compiles Macros to valid Scribble line(s)
+(define (compile-doc-macro stx)
+  "another string heree")
