@@ -48,17 +48,16 @@
                      (doc-prop-value desc-prop)))
     (define example-prop? (mk-prop? 'examples))
     (define example-prop (extract example-prop? dat-body))
-    (string-append "Data:" dat-type "\n" "Types:\n" type "\n" "Interpretation:" desc)))
+    (string-append "Data:" dat-type "\n"
+                   "Types:\n"
+                   type "\n"
+                   "Interpretation:" desc)))
 
 ; Compiles Functions to valid Scribble line(s)
 (define-for-syntax (compile-doc-func stx)
-  (syntax-parse stx
-    [(_ func)
-     #'void]))
+  void)
 
 ; Compiles Constants to valid Scribble line(s)
 (define-for-syntax (compile-doc-const stx)
-  (syntax-parse stx
-    [(_ const)
-     #'void]))
+  void)
      
