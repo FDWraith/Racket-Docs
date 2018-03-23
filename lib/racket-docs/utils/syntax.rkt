@@ -7,10 +7,13 @@
          map/stx
          flatten/stx
          equal-datum?
-         syntax->string)
+         syntax->string
+         extract
+         mk-prop?)
 
 (require [for-syntax syntax/parse]
-         syntax/parse)
+         syntax/parse
+         "../struct.rkt")
 
 ; Matches an option before the cases in syntax-parse, syntax-parser, etc.
 ; Example: #:datum-literals (foo bar baz)
@@ -89,3 +92,16 @@
       [else (string-append
              "(" (string-join (map (compose stringify syntax->datum) (syntax->list stx)) " ")
              ")")])))
+
+; Creates a function that determines if a given DocProp
+; matches that type
+(define (mk-prop? type)
+  (λ (prop) (prop-type=? type (doc-prop-type prop))))
+
+; Returns the first element in the list that matches pred
+; Returns an empty list if no such element is found
+(define (extract pred lst)
+  (cond
+    [(empty? lst) lst]
+    [else (let ([fst (first lst)])
+            (if (pred fst) fst (extract pred (rest lst))))]))

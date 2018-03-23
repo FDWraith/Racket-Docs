@@ -11,6 +11,8 @@
          define-docs
          define-data
          define-syntax/docs
+         compile-docs
+         get-all-docs
          
          ; Special types
          Union
