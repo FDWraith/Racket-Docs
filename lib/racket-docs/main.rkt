@@ -7,7 +7,7 @@
          [for-syntax define-docs
                      define-data
                      define-syntax/docs
-                     get-all-docs]
+                     compile-docs]
          define-docs
          define-data
          define-syntax/docs
@@ -27,6 +27,6 @@
          Listof
          Maybe)
 
-(require "parse.rkt")
-(require "types.rkt")
-(require "compile.rkt")
+(require [for-syntax "compile.rkt"]
+         "parse.rkt"
+         "types.rkt")

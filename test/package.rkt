@@ -26,4 +26,8 @@
     [Signature: Int]
     [Purpose: "A value which could be used by macros"]
     [Examples: phase1-val => 5])
-  (define phase1-val 5))
+  (define phase1-val 5)
+
+  (displayln "Hello"))
+
+(displayln "World")
