@@ -18,6 +18,7 @@
          Union
          ->
          ; Primitive Types
+         Nothing
          Bool
          Pos
          Nat
@@ -26,9 +27,13 @@
          String
 
          ; Built-In Non-Primitive Types
+         Any
          Listof
          Maybe)
 
 (require "parse.rkt")
 (require "types.rkt")
-(require (for-syntax "compile.rkt"))
+(require [for-syntax "compile.rkt"]
+         "parse.rkt"
+         "types.rkt")
+

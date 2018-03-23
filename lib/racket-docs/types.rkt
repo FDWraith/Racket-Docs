@@ -7,6 +7,7 @@
          Union
          ->
          ; Primitive Types
+         Nothing
          Bool
          Pos
          Nat
@@ -15,6 +16,7 @@
          String
 
          ; Built-In Non-Primitive Types
+         Any
          Listof
          Maybe)
 
@@ -280,13 +282,15 @@ param types, and the last parameter as the output type.
   (define args (cons arg rest-args))
   (define-values (params out) (split-at-right args 1))
   (func params out))
-  
+
+(define-type/primitive Nothing)
 (define-type/primitive Bool)
 (define-type/primitive Pos)
 (define-type/primitive Nat)
 (define-type/primitive Int)
 (define-type/primitive Num)
 (define-type/primitive String)
+(define-type Any [Union])
 (define-type [Listof X]
   (Union '() (cons X [Listof X])))
 (define-type [Maybe X]
