@@ -52,7 +52,7 @@
       [(symbol=? ent-type 'type) (compile-doc-data ent)]
       [(symbol=? ent-type 'value) (compile-doc-const ent)]
       [(symbol=? ent-type 'macro) (compile-doc-func ent)])))
-
+     
 ; DocEntry -> String
 ; Compiles Data Definitions to valid Scribble line(s)
 ; (: compile-doc-data (-> doc-entry String))
