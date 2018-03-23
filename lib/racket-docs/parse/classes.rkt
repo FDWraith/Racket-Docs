@@ -14,8 +14,10 @@
          [for-template "../types.rkt"])
 
 (define-syntax-class head
-  [pattern id:id]
-  [pattern (id:id arg:id ...)])
+  [pattern id:id
+           #:attr args #false]
+  [pattern (id:id arg:id ...)
+           #:attr args #'(arg ...)])
 
 (define-splicing-parse-class union-type
   #:datum-literals (-)

@@ -55,7 +55,8 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
        #'(begin
            (define entry
              (val-doc-entry #'head.id
-                            (list (sig-doc-prop #'sig.out1)
+                            (list (args-doc-prop (attribute head.args))
+                                  (sig-doc-prop #'sig.out1)
                                   (purpose-doc-prop purpose.out1)
                                   extra-prop.out1 ...)))
            (add-doc! entry 'define-docs stx #'(extra-prop ...)))]
@@ -128,7 +129,8 @@ If documenting a value, also assignes the documented type.
      (define sig+ (parse-class sig))
      (define entry
        (val-doc-entry #'head.id
-                      (list* (sig-doc-prop sig+)
+                      (list* (args-doc-prop (attribute head.args))
+                             (sig-doc-prop sig+)
                              (purpose-doc-prop (parse-class purpose))
                              (parse-classes (extra-prop ...)))))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))

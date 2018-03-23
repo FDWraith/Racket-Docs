@@ -1,6 +1,7 @@
 #lang racket
 
 (provide [struct-out doc-prop]
+         args-doc-prop
          type-doc-prop
          sig-doc-prop
          syntax-doc-prop
@@ -28,7 +29,8 @@
 (struct doc-prop [type value] #:transparent)
 
 #;(define-data DocPropType
-    [: - 'type
+    [: - 'args
+       - 'type
        - 'syntax
        - 'desc
        - 'examples
@@ -37,6 +39,16 @@
        - 'effects]
     [Interpretation:
      "What a doc prop means - whether its a description or accumulator or ..."])
+
+#;(define-docs args-doc-prop
+    [Signature: [Maybe [Stx List]] -> DocProp]
+    [Purpose: #<<"
+Documents the arguments given to a function.
+To document an identifier (no arguments), pass #false.
+"
+              ])
+(define (args-doc-prop args)
+  (doc-prop 'args args))
 
 #;(define-docs type-doc-prop
     [Signature: [Stxof Type] -> DocProp]

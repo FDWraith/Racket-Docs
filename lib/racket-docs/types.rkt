@@ -18,12 +18,23 @@
          ; Built-In Non-Primitive Types
          Any
          Listof
-         Maybe)
+         Maybe
+         List)
 
 (require [for-syntax syntax/parse
                      "utils.rkt"])
 
 #;(define-data Type
+  [: -> UnwrappedType]
+  [Interpretation: #<<"
+A type specified in the type system.
+Some values are instances of the type, some aren't.
+Types are wrapped in thunks so they can be recursive,
+e.g. you can create the type LoS = (cons String LoS).
+"
+                   ])
+
+#;(define-data UnwrappedType
   [: - PrimitiveType
      - UnionType
      - FunctionType
@@ -31,6 +42,9 @@
   [Interpretation: #<<"
 A type specified in the type system.
 Some values are instances of the type, some aren't.
+Types are wrapped in thunks so they can be recursive,
+e.g. you can create the type LoS = (cons String LoS).
+This is what you get when you call the thunk.
 "
                    ])
 
@@ -115,7 +129,7 @@ characters) and replaces them in defn to get a result.
   (syntax-parse stx
     [(_ defd:id defn)
      #:with defn+ (parse-type #'defn)
-     #'(define-type/parsed defd defn+)]
+     #'(define-type/parsed+un defd (defn+))]
     [(_ (defd:id param:id ...) defn)
      #:with defn+ (parse-type #'defn)
      (define bad-param-stx
@@ -125,7 +139,7 @@ characters) and replaces them in defn to get a result.
                            "Param must be valid type identifier"
                            stx
                            bad-param-stx))
-     #'(define-type/parsed (defd param ...) defn+)]))
+     #'(define-type/parsed+un (defd param ...) (defn+))]))
 
 #;(define-docs define-type/primitive
     [Syntax: (define-type/primitive defd:id)]
@@ -133,12 +147,12 @@ characters) and replaces them in defn to get a result.
     [Examples: "Defines the type Bool." <= (define-type/parsed Bool)])
 (define-syntax define-type/primitive
   (syntax-parser
-    [(_ defd:id) #'(define-type/parsed defd (primitive))]))
+    [(_ defd:id) #'(define-type/parsed+un defd (primitive))]))
 
-#;(define-docs define-type/parsed
-    [Syntax: (define-type/parsed defd:id defn)
-             (define-type/parsed (defd:id param:id ...) defn ...)
-             (define-type/parsed (defd:id param:id ... . rest:id) defn ...)]
+#;(define-docs define-type/parsed+un
+    [Syntax: (define-type/parsed+un defd:id defn)
+             (define-type/parsed+un (defd:id param:id ...) defn ...)
+             (define-type/parsed+un (defd:id param:id ... . rest:id) defn ...)]
     [Semantics: #<<"
 Assumes defn is already parsed - e.g. it can be a primitive type.
 Creates a new type, defd, which is equivalent to defn - whenever an instance of
@@ -150,13 +164,17 @@ and creates a result using (defn ...).
     [Examples:
      (define-type Integer (primitive))
      (define-type Int [Union Pos 0 (- Pos)])])
-(define-syntax define-type/parsed
+(define-syntax define-type/parsed+un
   (syntax-parser
-    [(_ defd:id defn) #'(define defd defn)]
+    [(_ defd:id defn)
+     #'(define defd
+         (λ () defn))]
     [(_ (defd:id param:id ...) defn ...)
-     #'(define (defd param ...) defn ...)]
+     #'(define (defd param ...)
+         (λ () defn ...))]
     [(_ (defd:id param:id ... . rest:id) defn ...)
-     #'(define (defd param ... . rest) defn ...)]))
+     #'(define (defd param ... . rest)
+         (λ () defn ...))]))
 
 #;(define-docs assign-type
     [Syntax: (assign-type val:id type)]
@@ -196,7 +214,7 @@ is an instance of type.
   (syntax-parser
     [(_ val:id type)
      ; TODO Actually assign the type - make it a syntax property?
-     #'(printf "Assigned type: ~a\n" type)]))
+     #'(printf "Assigned type: ~a app= ~a\n" type (type))]))
 
 ; TODO parse-type - Parses the type.
 ; Converts every lowercase identifier into a symbol,
@@ -267,7 +285,7 @@ Otherwise, it will be parsed into an expression type.
     [Signature: [Type ... -> UnionType]]
     [Semantics: "Creates a union type, with the given parameters as sub-types."]
     [Examples: [Union String Bool] => (union (list String Bool))])
-(define-type/parsed (Union . xs)
+(define-type/parsed+un (Union . xs)
   (union xs))
 
 #;(define-docs [-> X . Xs]
@@ -278,7 +296,7 @@ param types, and the last parameter as the output type.
 "
                 ]
     [Examples: [-> String Bool] => (func (list String) Bool)])
-(define-type/parsed (-> arg . rest-args)
+(define-type/parsed+un (-> arg . rest-args)
   (define args (cons arg rest-args))
   (define-values (params out) (split-at-right args 1))
   (func params out))
@@ -295,3 +313,4 @@ param types, and the last parameter as the output type.
   (Union '() (cons X [Listof X])))
 (define-type [Maybe X]
   (Union #false X))
+(define-type List [Listof Any])

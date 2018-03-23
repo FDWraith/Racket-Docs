@@ -87,12 +87,14 @@
       'value
       #'foo
       (list
+       (doc-prop 'args #false)
        (doc-prop 'type #'Int)
        (doc-prop 'desc "Something")))
      (doc-entry
       'value
       #'foo-cons
       (list
+       (doc-prop 'args #'(foo foos))
        (doc-prop 'type #'[-> Foo [Listof Foo] Foo])
        (doc-prop 'desc "Prepends @foo onto @foos")
        (doc-prop 'examples
@@ -113,6 +115,7 @@
                        (eval-example #'(let [(a-b-c 10)] (append-id a b c))
                                      #'10)))))))
 
+  (displayln "Ran")
   (unless (empty? (get-all-docs))
     (displayln "Testing ...")
     (check equal-datum?
