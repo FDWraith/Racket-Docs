@@ -7,12 +7,10 @@
          [for-syntax define-docs
                      define-data
                      define-syntax/docs
-                     get-all-docs
                      compile-docs]
          define-docs
          define-data
          define-syntax/docs
-         get-all-docs
          
          ; Special types
          Union
@@ -31,8 +29,6 @@
          Listof
          Maybe)
 
-(require "parse.rkt")
-(require "types.rkt")
 (require [for-syntax "compile.rkt"]
          "parse.rkt"
          "types.rkt")

@@ -6,8 +6,7 @@
                      get-all-docs]
          define-docs
          define-data
-         define-syntax/docs
-         get-all-docs)
+         define-syntax/docs)
 
 (require [for-syntax [for-syntax "parse/gen.rkt"
                                  "parse/classes.rkt"
@@ -94,19 +93,15 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
   (define-syntax define-syntax/docs
     (gen-define-syntax/docs #'define-docs))
 
-  ; See phase 0 definition for docs
-  #;(define-docs get-all-docs
-      [Syntax: get-all-docs]
+  #;(define-docs (get-all-docs)
+      [Signature: -> [Listof DocEntry]]
       [Semantics: #<<"
 Returns all of the documentation entries as structures,
 in the order they were defined in the file.
 "
                   ])
-  (define-syntax get-all-docs
-    (mk-id-macro
-     ; cur-entries are ordered from bottom of file to top.
-     ; User expects entries to be ordered from top of file to bottom.
-     #'(reverse cur-entries))))
+  (define (get-all-docs)
+    (reverse cur-entries)))
 
 #;(define-docs define-docs
   [Syntax:
@@ -217,17 +212,3 @@ Automatically generates SYNTAX documentation from syntax-parse clauses.
          [(_ (bar x:nat)) #'x])))])
 (define-syntax define-syntax/docs
   (gen-define-syntax/docs #'define-docs))
-
-#;(define-docs get-all-docs
-  [Syntax: get-all-docs]
-  [Semantics: #<<"
-Returns all of the documentation entries as structures,
-in the order they were defined in the file.
-"
-              ])
-(define-syntax get-all-docs
-  (mk-id-macro
-   ; cur-entries are ordered from bottom of file to top.
-   ; User expects entries to be ordered from top of file to bottom.
-   (define all-docs (reverse cur-entries))
-   #`'#,(datum->syntax #false all-docs)))
