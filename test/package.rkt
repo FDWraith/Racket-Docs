@@ -27,7 +27,10 @@
     [Purpose: "A value which could be used by macros"]
     [Examples: phase1-val => 5])
   (define phase1-val 5)
-
+  
   (displayln "Hello"))
 
+(println (+int 5 7))
+(begin-without-type-checking
+  (println (+int 3.5 3.6)))
 (displayln "World")

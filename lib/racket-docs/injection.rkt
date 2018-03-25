@@ -9,9 +9,10 @@
         (λ (msg fake-error)
           (displayln msg)))]
      (error msg)))
-  
-  (displayln "Compiling docs ...")
 
-  (compile-docs)
-  
-  (stop "Successfully compiled docs."))
+  (unless (no-docs?)
+    (displayln "Compiling docs ...")
+    
+    (compile-docs)
+    
+    (stop "Successfully compiled docs.")))

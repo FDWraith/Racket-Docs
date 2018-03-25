@@ -6,6 +6,7 @@
          mk-id-macro
          map/stx
          flatten/stx
+         syntax-property/recur
          equal-datum?
          syntax->string
          extract
@@ -58,6 +59,18 @@
                             (map syntax-e
                                  (syntax-e stx)))))
 
+; Syntax Symbol Any -> Syntax
+; Sets the syntax property in the given syntax and any of its children
+; (e.g. if it's a syntax list, the syntaxes inside the list).
+(define (syntax-property/recur stx key val)
+  (define (syntax-property/recur* stx*)
+    (syntax-property/recur stx* key val))
+  (define stx+ (syntax-property stx key val))
+  (define stx+e (syntax-e stx+))
+  (cond
+    [(list? stx+e) (datum->syntax stx+ (map syntax-property/recur* stx+e))]
+    [else stx+]))
+
 ; Whether the given values are equal, but if both values are syntax objects,
 ; their syntax information is strict and only their datum values are compared.
 (define (equal-datum? x y)
@@ -85,13 +98,17 @@
          [(symbol? exp) (symbol->string exp)]
          [(number? exp) (number->string exp)]
          [(boolean? exp) (boolean->string exp)]
-         [(list? exp) (string-append "(" (string-join (map stringify exp) " ") ")")]
+         [(list? exp)
+          (string-append "(" (string-join (map stringify exp) " ") ")")]
          [else (error "datum cannot be turned to string")])))
     (cond
       [(const? stx) (stringify (syntax->datum stx))]
-      [else (string-append
-             "(" (string-join (map (compose stringify syntax->datum) (syntax->list stx)) " ")
-             ")")])))
+      [else
+       (string-append "("
+                      (string-join (map (compose stringify syntax->datum)
+                                        (syntax->list stx))
+                                   " ")
+                      ")")])))
 
 ; Creates a function that determines if a given DocProp
 ; matches that type

@@ -3,33 +3,26 @@
 (provide [except-out [all-from-out racket]
                      read
                      read-syntax
-                     read-language]
+                     read-language
+                     #%datum
+                     #%app]
+         [rename-out (typed-datum #%datum)
+                     (typed-app #%app)]
+         
          [for-syntax define-docs
                      define-data
                      define-syntax/docs
-                     compile-docs]
+                     compile-docs
+                     no-docs?]
          define-docs
          define-data
          define-syntax/docs
+         begin-without-type-checking
          
-         ; Special types
-         Union
-         ->
-         ; Primitive Types
-         Nothing
-         Bool
-         Pos
-         Nat
-         Int
-         Num
-         String
-
-         ; Built-In Non-Primitive Types
-         Any
-         Listof
-         Maybe)
+         [all-from-out "types/builtin.rkt"])
 
 (require [for-syntax "compile.rkt"]
          "parse.rkt"
-         "types.rkt")
+         "types/language.rkt"
+         "types/builtin.rkt")
 

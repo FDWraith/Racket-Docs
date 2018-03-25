@@ -3,7 +3,8 @@
 (provide [for-syntax define-docs
                      define-data
                      define-syntax/docs
-                     get-all-docs]
+                     get-all-docs
+                     no-docs?]
          define-docs
          define-data
          define-syntax/docs)
@@ -96,13 +97,19 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
 
   #;(define-docs (get-all-docs)
       [Signature: -> [Listof DocEntry]]
-      [Semantics: #<<"
+      [Purpose: #<<"
 Returns all of the documentation entries as structures,
 in the order they were defined in the file.
 "
                   ])
   (define (get-all-docs)
-    (reverse cur-entries)))
+    (reverse cur-entries))
+
+  #;(define-docs (no-docs)
+      [Signature: -> Bool]
+      [Purpose: "Whether there are any docs."])
+  (define (no-docs?)
+    (null? (get-all-docs))))
 
 #;(define-docs define-docs
   [Syntax:
@@ -134,7 +141,7 @@ If documenting a value, also assignes the documented type.
                              (purpose-doc-prop (parse-class purpose))
                              (parse-classes (extra-prop ...)))))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
-     #`(assign-type head.id #,sig+)]
+     #`(assign-type/id head.id #,sig+)]
     [(_ id:id
         [Syntax: stx-case ...]
         [Semantics: semantics:raw-text]
