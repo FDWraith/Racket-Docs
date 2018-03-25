@@ -13,6 +13,7 @@
          accumulator-doc-prop
          generative-doc-prop
          effects-doc-prop
+         prop-has-type?
          prop-type=?
          prop-type->string
          check-shared-types)
@@ -111,6 +112,12 @@ To document an identifier (no arguments), pass #false.
     [Purpose: "Documents that the term causes the described effects."])
 (define (effects-doc-prop effects)
   (doc-prop 'effects effects))
+
+#;(define-docs prop-has-type?
+    [Signature: DocPropType DocProp -> Bool]
+    [Purpose: "Is the doc prop of the given type?"])
+(define (prop-has-type? type prop)
+  (prop-type=? type (doc-prop-type prop)))
 
 #;(define-docs prop-type=?
     [Signature: DocPropType DocPropType -> Bool]

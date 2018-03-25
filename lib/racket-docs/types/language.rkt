@@ -65,7 +65,9 @@ aren't subtypes of the function's parameter types.
                               this-syntax))
         (with-syntax [(f+ f+-stx)
                       ((x+ ...) x+-stxs)]
-          (define out-gen-type (or (try-func-out f-type) Unknown))
+          (define out-gen-type
+            (or (map/maybe try-func-out
+                           (refine-for-params x-types f-type)) Unknown))
           (define out-shape-type (λ () (cons f-type x-types)))
           (define out-type [Intersection out-gen-type out-shape-type])
           (assign-type/stx/parsed #'(#%app f+ x+ ...) out-type))])]))

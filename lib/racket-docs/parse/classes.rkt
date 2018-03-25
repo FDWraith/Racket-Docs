@@ -27,8 +27,19 @@
 
 (define-splicing-parse-class type
   #:datum-literals (->)
-  [(~seq i ... -> o) #'[-> i ... o]]
-  [(~seq i ... -> o ...) #'[-> i ... (values o ...)]]
+  [(~seq i:non-func-type ... -> o:type)
+   #'[-> i.out ... o.out]]
+  [(~seq i:non-func-type ... -> o:non-func-type ...)
+   #'[-> i.out ... (values o.out ...)]]
+  [x:non-func-type #'x.out])
+
+(define-parse-class non-func-type
+  #:datum-literals (->)
+  [[i:non-func-type ... -> o:type]
+   #'[-> i.out ... o.out]]
+  [[i:non-func-type ... -> o:non-func-type ...]
+   #'[-> i.out ... (values o.out ...)]]
+  [[x:non-func-type ...] #'[x.out ...]]
   [x #'x])
 
 (define-parse-class raw-text
@@ -53,7 +64,17 @@
 (define-splicing-parse-class example
   #:datum-literals (=>)
   [(~seq expr => expected)
-   (eval-example #'expr #'expected)])
+   #:with this
+   (datum->syntax #'(expr => expected)
+                  (list #'expr #'=> #'expected)
+                  (list (syntax-source #'expr)
+                        (syntax-line #'expr)
+                        (syntax-column #'expr)
+                        (syntax-position #'expr)
+                        (+ (syntax-span #'expected)
+                           (- (syntax-position #'expected)
+                              (syntax-position #'expr)))))
+   (eval-example #'expr #'expected #'this)])
 
 (define-splicing-parse-class data-example
   #:datum-literals (<=)

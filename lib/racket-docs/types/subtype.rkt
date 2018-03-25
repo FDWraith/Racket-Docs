@@ -3,7 +3,8 @@
 (provide nothing/unknown?
          type<?
          types<?
-         params<?)
+         params<?
+         refine-for-params)
 
 (require "struct.rkt")
 
@@ -75,7 +76,7 @@ and each element in @xs is a subtype of the element in @ys with the same index.
 #;(define-docs (params<? xs f)
     [Signature: [Listof Type] Type -> Bool]
     [Purpose: #<<"
-Whether @xs are subtypes of the parameters of @f. 
+Whether @xs are subtypes of the parameters of @f.
 If @f is a union type, whether @xs are subtypes of all of @f's subtypes.
 If @f is an intersection type, whether @xs are subtypes of any of @f's subtypes.
 If @f is a function, whether @xs are subtypes of the parameters.
@@ -90,4 +91,25 @@ Otherwise, #false.
     [(union? f+)
      (andmap (curry params<? xs) (union-subs f+))]
     [(func? f+) (types<? xs (func-params f+))]
+    [else #false]))
+
+#;(define-docs (refine-for-params xs f)
+    [Signature: [Listof Type] Type -> [Maybe Type]]
+    [Purpose: #<<"
+Treating @f as an intersection or union of functions,
+returns only the functions which satisfy the given parameters.
+"
+              ])
+(define (refine-for-params xs f)
+  (define f+ (f))
+  (cond
+    [(intersection? f+)
+     (λ () (intersection (filter-map (curry refine-for-params xs)
+                                     (intersection-subs f+))))]
+    [(union? f+)
+     (and (andmap (curry params<? xs) (union-subs f+))
+          f)]
+    [(func? f+)
+     (and (types<? xs (func-params f+))
+          f)]
     [else #false]))
