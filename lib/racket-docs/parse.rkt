@@ -3,18 +3,20 @@
 (provide [for-syntax define-docs
                      define-data
                      define-syntax/docs
-                     get-all-docs]
+                     get-all-docs
+                     no-docs?]
          define-docs
          define-data
-         define-syntax/docs
-         get-all-docs)
+         define-syntax/docs)
 
 (require [for-syntax [for-syntax "parse/gen.rkt"
+                                 "parse/tests.rkt"
                                  "parse/classes.rkt"
                                  "utils.rkt"
                                  syntax/parse
                                  racket/base]
                      "parse/gen.rkt"
+                     "parse/tests.rkt"
                      "parse/classes.rkt"
                      "parse/errors.rkt"
                      "struct.rkt"
@@ -53,25 +55,30 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           [Purpose: purpose:raw-text]
           extra-prop:extra-doc-prop ...)
        #:with stx #`#'#,stx
-       #'(begin
+       #:with run-tests (tests-for-props (parse-classes (extra-prop ...)))
+       #`(begin
            (define entry
              (val-doc-entry #'head.id
-                            (list (sig-doc-prop #'sig.out1)
+                            (list (args-doc-prop (attribute head.args))
+                                  (sig-doc-prop #'sig.out1)
                                   (purpose-doc-prop purpose.out1)
                                   extra-prop.out1 ...)))
-           (add-doc! entry 'define-docs stx #'(extra-prop ...)))]
+           (add-doc! entry 'define-docs stx #'(extra-prop ...))
+           run-tests)]
       [(_ id:id
           [Syntax: stx-case ...] ~!
           [Semantics: semantics:raw-text]
           extra-prop:extra-doc-prop ...)
        #:with stx #`#'#,stx
+       #:with run-tests (tests-for-props (parse-classes (extra-prop ...)))
        #'(begin
            (define entry
              (macro-doc-entry #'id
                               (list (syntax-doc-prop #'(stx-case ...))
                                     (semantics-doc-prop semantics.out1)
                                     extra-prop.out1 ...)))
-           (add-doc! entry 'define-docs stx #'(extra-prop ...)))]))
+           (add-doc! entry 'define-docs stx #'(extra-prop ...))
+           run-tests)]))
 
   ; See phase 0 definition for docs
   (define-syntax (define-data stx)
@@ -81,6 +88,7 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           [: type:union-type]
           [Interpretation: interpretation:raw-text]
           extra-prop:extra-data-doc-prop ...)
+       #:with run-tests (tests-for-props (parse-classes (extra-prop ...)))
        #'(begin
            (define entry
              (type-doc-entry
@@ -88,25 +96,28 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
               (list* (type-doc-prop #'type.out1)
                      (interpretation-doc-prop interpretation.out1)
                      extra-prop.out1 ...)))
-           (add-doc! entry 'define-data stx #'(extra-prop ...)))]))
+           (add-doc! entry 'define-data stx #'(extra-prop ...))
+           run-tests)]))
 
   ; See phase 0 definition for docs
   (define-syntax define-syntax/docs
     (gen-define-syntax/docs #'define-docs))
 
-  ; See phase 0 definition for docs
-  #;(define-docs get-all-docs
-      [Syntax: get-all-docs]
-      [Semantics: #<<"
+  #;(define-docs (get-all-docs)
+      [Signature: -> [Listof DocEntry]]
+      [Purpose: #<<"
 Returns all of the documentation entries as structures,
 in the order they were defined in the file.
 "
                   ])
-  (define-syntax get-all-docs
-    (mk-id-macro
-     ; cur-entries are ordered from bottom of file to top.
-     ; User expects entries to be ordered from top of file to bottom.
-     #'(reverse cur-entries))))
+  (define (get-all-docs)
+    (reverse cur-entries))
+
+  #;(define-docs (no-docs)
+      [Signature: -> Bool]
+      [Purpose: "Whether there are any docs."])
+  (define (no-docs?)
+    (null? (get-all-docs))))
 
 #;(define-docs define-docs
   [Syntax:
@@ -131,24 +142,29 @@ If documenting a value, also assignes the documented type.
         [Purpose: purpose:raw-text]
         extra-prop:extra-doc-prop ...)
      (define sig+ (parse-class sig))
+     (define extra-props+ (parse-classes (extra-prop ...)))
      (define entry
        (val-doc-entry #'head.id
-                      (list* (sig-doc-prop sig+)
+                      (list* (args-doc-prop (attribute head.args))
+                             (sig-doc-prop sig+)
                              (purpose-doc-prop (parse-class purpose))
-                             (parse-classes (extra-prop ...)))))
+                             extra-props+)))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
-     #`(assign-type head.id #,sig+)]
+     #`(begin
+         (assign-type/id head.id #,sig+)
+         #,(tests-for-props extra-props+))]
     [(_ id:id
         [Syntax: stx-case ...]
         [Semantics: semantics:raw-text]
         extra-prop:extra-doc-prop ...)
+     (define extra-props+ (parse-classes (extra-prop ...)))
      (define entry
        (macro-doc-entry #'id
                         (list* (syntax-doc-prop #'(stx-case ...))
                                (semantics-doc-prop (parse-class semantics))
-                               (parse-classes (extra-prop ...)))))
+                               extra-props+)))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
-     #'(void)]))
+     (tests-for-props extra-props+)]))
 
 #;(define-docs define-data
   [Syntax:
@@ -165,14 +181,17 @@ If documenting a value, also assignes the documented type.
         [Interpretation: interpretation:raw-text]
         extra-prop:extra-data-doc-prop ...)
      (define type+ (parse-class type))
+     (define extra-props+ (parse-classes (extra-prop ...)))
      (define entry
        (type-doc-entry
         #'id
         (list* (type-doc-prop type+)
                (interpretation-doc-prop (parse-class interpretation))
-               (parse-classes (extra-prop ...)))))
+               extra-props+)))
      (add-doc! entry 'define-data stx #'(extra-prop ...))
-     #`(define-type id #,type+)])) ; Long-Term TODO: Add type constructors
+     #`(begin
+         (define-type id #,type+) ; Long-Term TODO: Add type constructors
+         #,(tests-for-props extra-props+))]))
 
 #;(define-docs define-syntax/docs
   [Syntax:
@@ -217,17 +236,3 @@ Automatically generates SYNTAX documentation from syntax-parse clauses.
          [(_ (bar x:nat)) #'x])))])
 (define-syntax define-syntax/docs
   (gen-define-syntax/docs #'define-docs))
-
-#;(define-docs get-all-docs
-  [Syntax: get-all-docs]
-  [Semantics: #<<"
-Returns all of the documentation entries as structures,
-in the order they were defined in the file.
-"
-              ])
-(define-syntax get-all-docs
-  (mk-id-macro
-   ; cur-entries are ordered from bottom of file to top.
-   ; User expects entries to be ordered from top of file to bottom.
-   (define all-docs (reverse cur-entries))
-   #`'#,(datum->syntax #false all-docs)))
