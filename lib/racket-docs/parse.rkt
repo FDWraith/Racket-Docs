@@ -76,7 +76,7 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
              
            #;(val-doc-entry #'head.id
                             (list (args-doc-prop (attribute head.args))
-                                  (sig-doc-prop #'sig.out1)
+                                  (sig-doc-prop sig.out)
                                   (purpose-doc-prop purpose.out1)
                                   extra-prop.out1 ...))
            (add-doc! entry 'define-docs stx #'(extra-prop ...))
@@ -109,7 +109,7 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
            (define entry
              (type-doc-entry
               #'id
-              (list* (type-doc-prop #'type.out1)
+              (list* (type-doc-prop type.out)
                      (interpretation-doc-prop interpretation.out1)
                      extra-prop.out1 ...)))
            (add-doc! entry 'define-data stx #'(extra-prop ...))
@@ -212,7 +212,7 @@ If documenting a function, also assignes the documented type.
      (define entry
        (type-doc-entry
         #'id
-        (list* (type-doc-prop type+)
+        (list* (type-doc-prop/stx type+)
                (interpretation-doc-prop (parse-class interpretation))
                extra-props+)))
      (add-doc! entry 'define-data stx #'(extra-prop ...))

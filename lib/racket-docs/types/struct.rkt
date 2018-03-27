@@ -4,6 +4,9 @@
          [struct-out intersection]
          [struct-out union]
          [struct-out func]
+         Intersection/parsed
+         Union/parsed
+         ->/parsed
          expr?
          try-func-out
          type-summary
@@ -102,6 +105,45 @@ This would match (cons \"Hello\" \"World\") and (cons \"A\" \"B\"),
 but not (cons \"Z\" 7), (foo \"?\" \"E\"), or 'alskdj.
 "
              <= (expr `(cons ,String ,String))])
+
+#;(define-docs (Intersection/parsed xs)
+    [Signature: Type -> Type]
+    [Semantics: #<<"
+Creates an intersection type, with the given parameters as sub-types.
+A value belongs to this type if it belongs to all of the sub-types.
+Unlike regular Intersection, doesn't parse the given types.
+"
+                ]
+    [Examples:
+     [Intersection String Bool] => (λ () (intersection (list String Bool)))])
+(define (Intersection/parsed xs)
+  (λ () (intersection xs)))
+
+#;(define-docs (Union/parsed xs)
+    [Signature: Type -> Type]
+    [Semantics: #<<"
+Creates a union type, with the given parameters as sub-types.
+A value belongs to this type if it belongs to any of the sub-types.
+Unlike regular Union, doesn't parse the given types.
+"
+                ]
+    [Examples:
+     (Union/parsed (list String Bool)) => (λ () (union (list String Bool)))])
+(define (Union/parsed xs)
+  (λ () (union xs)))
+
+#;(define-docs (->/parsed params out)
+    [Signature: [Listof Type] Type -> Type]
+    [Semantics: #<<"
+Creates a function type, with the types in the first parameter as
+param types, and the second parameter as the output type.
+Unlike regular ->, doesn't parse the given types.
+"
+                ]
+    [Examples:
+     (->/parsed (list String) Bool) => (λ () (func (list String) Bool))])
+(define (->/parsed params out)
+  (λ () (func params out)))
 
 #;(define-docs (expr? x)
     [Signature: Type -> Bool]

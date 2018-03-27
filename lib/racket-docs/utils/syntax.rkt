@@ -7,7 +7,6 @@
          map/stx
          flatten/stx
          syntax-property/recur
-         equal-datum?
          syntax->string
          extract
          mk-prop?)
@@ -70,14 +69,6 @@
   (cond
     [(list? stx+e) (datum->syntax stx+ (map syntax-property/recur* stx+e))]
     [else stx+]))
-
-; Whether the given values are equal, but if both values are syntax objects,
-; their syntax information is strict and only their datum values are compared.
-(define (equal-datum? x y)
-  (cond
-    [(and (syntax? x) (syntax? y))
-     (equal-datum? (syntax->datum x) (syntax->datum y))]
-    [else (equal?/recur x y equal-datum?)]))
 
 ; Syntax -> String
 ; converts a piece of syntax to a string

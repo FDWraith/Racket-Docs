@@ -3,7 +3,9 @@
 (provide [struct-out doc-prop]
          args-doc-prop
          type-doc-prop
+         type-doc-prop/stx
          sig-doc-prop
+         sig-doc-prop/stx
          syntax-doc-prop
          desc-doc-prop
          interpretation-doc-prop
@@ -52,15 +54,28 @@ To document an identifier (no arguments), pass #false.
   (doc-prop 'args args))
 
 #;(define-docs type-doc-prop
-    [Signature: [Stxof Type] -> DocProp]
+    [Signature: Type -> DocProp]
     [Purpose: "Documents that the term has the given type."])
 (define (type-doc-prop type)
   (doc-prop 'type type))
 
-#;(define-docs sig-doc-prop
+#;(define-docs type-doc-prop/stx
     [Signature: [Stxof Type] -> DocProp]
+    [Purpose:
+     "Evaluates the syntax type, then documents that the term has it."])
+(define (type-doc-prop/stx type-stx)
+  (type-doc-prop (eval type-stx)))
+
+#;(define-docs sig-doc-prop
+    [Signature: Type -> DocProp]
     [Purpose: "Documents that the term has the given signature."])
 (define sig-doc-prop type-doc-prop)
+
+#;(define-docs sig-doc-prop/stx
+    [Signature: [Stxof Type] -> DocProp]
+    [Purpose:
+     "Evaluates the syntax signature, then documents that the term has it."])
+(define sig-doc-prop/stx type-doc-prop/stx)
 
 #;(define-docs syntax-doc-prop
     [Signature: [Stxof [Listof Syntax]] -> DocProp]
