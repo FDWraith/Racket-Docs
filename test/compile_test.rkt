@@ -7,10 +7,10 @@
      - String]
   [Interpretation: "What in the world"])
 
-#;(define-docs hello
+(define-docs (hello o)
   [Signature: Hello -> Bool]
   [Purpose: "Returns a lot of annoying things"])
-#;(define (hello o)
+(define (hello o)
   #f)
 
 (define-data What
