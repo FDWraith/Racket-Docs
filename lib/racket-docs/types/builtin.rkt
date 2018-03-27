@@ -4,6 +4,7 @@
                      Intersection
                      Union
                      ->
+                     
                      ; Primitive Types
                      Void
                      Bool

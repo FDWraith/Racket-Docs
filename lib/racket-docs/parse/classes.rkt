@@ -28,7 +28,7 @@
 (define-splicing-parse-class type
   #:datum-literals (->)
   [(~seq i:non-func-type ... -> o:type)
-   #'[-> i.out ... o.out]]
+   #'[-> i.out ... o]]
   [(~seq i:non-func-type ... -> o:non-func-type ...)
    #'[-> i.out ... (values o.out ...)]]
   [x:non-func-type #'x.out])

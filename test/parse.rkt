@@ -63,7 +63,7 @@
       'type
       #'Foo
       (list
-       (doc-prop 'type #'Any)
+       (doc-prop 'type Any)
        (doc-prop 'desc "Anything")
        (doc-prop
         'examples
@@ -76,7 +76,7 @@
       'type
       #'Bar
       (list
-       (doc-prop 'type #'[Union Int String])
+       (doc-prop 'type [Union Int String])
        (doc-prop 'desc "An integer or string")
        (doc-prop
         'examples
@@ -88,19 +88,24 @@
       #'foo
       (list
        (doc-prop 'args #false)
-       (doc-prop 'type #'Int)
+       (doc-prop 'type Int)
        (doc-prop 'desc "Something")))
      (doc-entry
       'value
       #'foo-cons
       (list
        (doc-prop 'args #'(foo foos))
-       (doc-prop 'type #'[-> Foo [Listof Foo] Foo])
+       (doc-prop 'type [-> Foo [Listof Foo] Foo])
        (doc-prop 'desc "Prepends @foo onto @foos")
        (doc-prop 'examples
-                 (list (eval-example #'(foo-cons 1 '()) #''(1))
+                 (list (eval-example #'(foo-cons 1 '())
+                                     #''(1)
+                                     #'[(foo-cons 1 '()) => '(1)])
                        (eval-example #'(foo-cons "Hello" '("World" "!"))
-                                     #''("Hello" "World" "!"))))
+                                     #''("Hello" "World" "!")
+                                     #'[(foo-cons "Hello" '("World" "!"))
+                                        =>
+                                        '("Hello" "World" "!")])))
        (doc-prop 'effects "No effects")))
      (doc-entry
       'macro
@@ -109,15 +114,23 @@
        (doc-prop 'syntax #'((append-id id:id ...+)))
        (doc-prop 'desc "Appends the @id@s together.")
        (doc-prop 'examples
-                 (list (eval-example
-                        #'(let [(hello-world 5)] (append-id hello world)) #'5)
-                       (eval-example #'(let [(hello 5)] (append-id hello)) #'5)
-                       (eval-example #'(let [(a-b-c 10)] (append-id a b c))
-                                     #'10)))))))
+                 (list
+                  (eval-example
+                   #'(let [(hello-world 5)] (append-id hello world))
+                   #'5
+                   #'[(let [(hello-world 5)] (append-id hello world)) => 5])
+                  (eval-example #'(let [(hello 5)] (append-id hello))
+                                #'5
+                                #'[(let [(hello 5)] (append-id hello)) => 5])
+                  (eval-example #'(let [(a-b-c 10)] (append-id a b c))
+                                #'10
+                                #'[(let [(a-b-c 10)] (append-id a b c))
+                                   =>
+                                   10])))))))
 
   (displayln "Ran")
   (unless (empty? (get-all-docs))
     (displayln "Testing ...")
     (check equal-datum?
-           (get-all-docs)
-           expected-docs)))
+           (second (get-all-docs))
+           (second expected-docs))))
