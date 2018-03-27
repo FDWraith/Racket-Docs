@@ -42,10 +42,11 @@
   (define type-prop? (mk-prop? 'type))
   (define type-prop (extract type-prop? dat-body))
   (define type (doc-prop-value type-prop))
-  (println (map syntax->string (syntax->list type)))
-  #;(define type-info (basic-type-summary (syntax->datum type)))
-  #;(define type-string (string-append "(code:line " (string-join type-info "\n") ")\n"))
-  (define type-string (string-append "(code:line " (string-join (map syntax->string (syntax->list type)) " ") ")\n"))
+  (println type)
+  (println (type))
+  (define type-info (basic-type-summary type))
+  (define type-string (string-append "(code:line " (string-join type-info "\n") ")\n"))
+  #;(define type-string (string-append "(code:line " (string-join (map syntax->string (syntax->list type)) " ") ")\n"))
   (define desc-prop? (mk-prop? 'desc))
   (define desc-prop (extract desc-prop? dat-body))
   (define desc (if (empty? desc-prop)
@@ -53,8 +54,8 @@
                    (doc-prop-value desc-prop)))
   (define example-prop? (mk-prop? 'examples))
   (define example-prop (extract example-prop? dat-body))
-  (string-append "@defthing[" dat-type " " dat-type"? #:Data Defintion" 
-                 type-string "]{\n"
+  (string-append "@defthing[ #:kind \"Data Defintion\" " dat-type " " dat-type"? "  
+                 "#:value " type-string "]{\n"
                  desc "\n}\n"))
 
 ; Compiles Functions to valid Scribble line(s)

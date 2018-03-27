@@ -194,7 +194,7 @@ Unlike regular ->, doesn't parse the given types.
     [(func? type+)
      (format "[~a -> ~a]"
              (string-join (map type-summary (func-params type+)) " ")
-             (type-summary (func-out type+)))]
+             (type-summary (λ () (func-out type+))))]
     [(list? type+)
      (format "(~a)"
              (string-join (map type-summary type+) " "))]
@@ -214,6 +214,7 @@ Unlike regular ->, doesn't parse the given types.
      (list "Nat" "[Listof [Union PosInt [Intersection Int '0]]]")])
 (define (basic-type-summary type)
   (define type+ (type))
+  (println type+)
   (cond
     [(union? type+) (map type-summary (union-subs type+))]
     [else (list (type-summary type))]))
