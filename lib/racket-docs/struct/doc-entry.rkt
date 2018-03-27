@@ -3,9 +3,10 @@
 (require "doc-prop.rkt")
 
 (provide [struct-out doc-entry]
-         val-doc-entry
+         func-doc-entry
          macro-doc-entry
-         type-doc-entry)
+         type-doc-entry
+         const-doc-entry)
 
 #;(define-data DocEntry
     [: (doc-entry DocType Syntax [Listof DocProp])]
@@ -13,26 +14,28 @@
 (struct doc-entry [type id props] #:transparent)
 
 #;(define-data DocType
-    [: - 'value
+    [: - 'func
        - 'macro
-       - 'type]
+       - 'type
+       - 'const]
     [Interpretation: #<<"
 Describes what type of data a doc entry documents.
-- 'value - It documents a value.
+- 'value - It documents a function.
 - 'macro - It documents a macro.
 - 'type - It documents a datatype.
+- 'const - It documents an identifer
 "
                      ])
 
-#;(define-docs val-doc-entry
+#;(define-docs func-doc-entry
     [Signature: Syntax [Listof DocProp] -> DocEntry]
-    [Purpose: "Creates a doc entry which documents a value."]
+    [Purpose: "Creates a doc entry which documents a function."]
     [Examples:
      (val-doc-entry #'+ (list (doc-prop 'desc "Adds 2 numbers.")))])
-(define (val-doc-entry id props)
-  (doc-entry 'value id props))
+(define (func-doc-entry id props)
+  (doc-entry 'func id props))
 
-#;(define-docs val-doc-entry
+#;(define-docs macro-doc-entry
     [Signature: Syntax [Listof DocProp] -> DocEntry]
     [Purpose: "Creates a doc entry which documents a macro."]
     [Examples:
@@ -41,7 +44,7 @@ Describes what type of data a doc entry documents.
 (define (macro-doc-entry id props)
   (doc-entry 'macro id props))
 
-#;(define-docs val-doc-entry
+#;(define-docs type-doc-entry
     [Signature: Syntax [Listof DocProp] -> DocEntry]
     [Purpose: "Creates a doc entry which documents a datatype."]
     [Examples:
@@ -49,3 +52,12 @@ Describes what type of data a doc entry documents.
                      (list (doc-prop 'desc "A sequence of characters.")))])
 (define (type-doc-entry id props)
   (doc-entry 'type id props))
+
+#;(define-docs const-doc-entry
+    [Signature: Syntax [Listof DocProp] -> DocEntry]
+    [Purpose: "Creates a doc entry which documents an identifer."]
+    [Examples:
+     (const-doc-entry #'String
+                     (list (doc-prop 'desc "A letter")))])
+(define (const-doc-entry id props)
+  (doc-entry 'const id props))

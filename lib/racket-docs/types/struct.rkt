@@ -6,7 +6,8 @@
          [struct-out func]
          expr?
          try-func-out
-         type-summary)
+         type-summary
+         basic-type-summary)
 
 #;(define-data Type
   [: -> UnwrappedType]
@@ -156,3 +157,21 @@ but not (cons \"Z\" 7), (foo \"?\" \"E\"), or 'alskdj.
      (format "(~a)"
              (string-join (map type-summary type+) " "))]
     [else (format "'~a" type+)]))
+
+#;(define-docs (basic-type-summary type)
+    [Signature: Type -> [Listof String]]
+    [Purpose: "A summary of the surface layer of the type"]
+    [Examples:
+     (basic-type-summary (primitive "String")) => "String"
+     (basic-type-summary (list (primitive "Nat"))) => "[Listof Nat]"
+     (basic-type-summary
+      (union (primitive "Nat")
+             (list (union (primitive "Nat")
+                          (primitive "PosInt"))
+                   (intersection (primitive "Int") 0)))) =>
+     (list "Nat" "[Listof [Union PosInt [Intersection Int '0]]]")])
+(define (basic-type-summary type)
+  (define type+ (type))
+  (cond
+    [(union? type+) (map type-summary (union-subs type+))]
+    [else (list (type-summary type))]))

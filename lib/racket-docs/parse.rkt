@@ -130,8 +130,8 @@ in the order they were defined in the file.
      [Semantics: semantics:raw-text]
      extra-prop:extra-doc-prop ...)]
   [Semantics: #<<"
-Documents a value or macro.
-If documenting a value, also assignes the documented type.
+Documents a function, constant or macro.
+If documenting a function, also assignes the documented type.
 "
               ])
 (define-syntax (define-docs stx)
@@ -144,11 +144,20 @@ If documenting a value, also assignes the documented type.
      (define sig+ (parse-class sig))
      (define extra-props+ (parse-classes (extra-prop ...)))
      (define entry
-       (val-doc-entry #'head.id
-                      (list* (args-doc-prop (attribute head.args))
-                             (sig-doc-prop sig+)
-                             (purpose-doc-prop (parse-class purpose))
-                             extra-props+)))
+       (cond
+         [(false? (attribute head.args))
+          (const-doc-entry
+           #'head.id
+           (list* (sig-doc-proc sig+)
+                  (purpose-doc-prop (parse-class purpose))
+                  extra-props))]
+         [else
+          (func-doc-entry
+           #'head.id
+           (list* (args-doc-prop (attribute head.args))
+                  (sig-doc-prop sig+)
+                  (purpose-doc-prop (parse-class purpose))
+                  extra-props+))]))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
      #`(begin
          (assign-type/id head.id #,sig+)

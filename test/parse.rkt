@@ -84,17 +84,16 @@
          (plain-data-example #'5)
          (interpret-data-example #'"H" "\"H\"")))))
      (doc-entry
-      'value
+      'const
       #'foo
       (list
-       (doc-prop 'args #false)
        (doc-prop 'type #'Int)
        (doc-prop 'desc "Something")))
      (doc-entry
-      'value
+      'func
       #'foo-cons
       (list
-       (doc-prop 'args #'(foo foos))
+       (doc-prop 'args #'(list foo foos))
        (doc-prop 'type #'[-> Foo [Listof Foo] Foo])
        (doc-prop 'desc "Prepends @foo onto @foos")
        (doc-prop 'examples
