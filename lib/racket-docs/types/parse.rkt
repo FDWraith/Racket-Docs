@@ -24,18 +24,18 @@ Leaves identifiers not starting with lowercase characters as-is
      (parse-type #'foo) => #'(λ () 'foo)
      (parse-type #'[Union A b C]) => #'[Union A (λ () 'b) C]
      (parse-type #'(cons x Y)) => #'(λ () (list (λ () 'cons) (λ () 'x) Y))])
-(define parse-type
-  (syntax-parser
+(define (parse-type stx)
+  (syntax-parse stx
     [x:id
      (cond
        [(type-identifier? #'x) #'x]
        [else #'(λ () 'x)])]
-    ['x #'(λ () 'x)]
+    [((~datum quote) x) #'(λ () 'x)]
     [(head param ...)
      #:with head+ (parse-type #'head)
      #:with (param+ ...) (map/stx parse-type #'(param ...))
      (cond
-       [(expr-stx? #'head+) #'(λ () (list head+ param+ ...))]
+       [(expr-stx? #'head) #'(λ () (list head+ param+ ...))]
        [else #'(head+ param+ ...)])]
     [x #'(λ () x)])) ; Numbers, booleans, etc. All expression types.
 
@@ -63,6 +63,7 @@ Otherwise, it will be parsed into an expression type.
      (expr-stx? #'`(a b ,Int)) => #true])
 (define expr-stx?
   (syntax-parser
-    ['_ #true]
-    [((~literal list) _ ...) #true]
-    [_ #false]))
+    [x:id (not (type-identifier? #'x))]
+    [((~datum quote) x) #true]
+    [(head param ...) (expr-stx? #'head)]
+    [_ #true]))

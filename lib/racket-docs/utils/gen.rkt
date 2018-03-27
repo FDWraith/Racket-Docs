@@ -1,6 +1,7 @@
 #lang racket
 
-(provide map/unzip
+(provide equal-thunk-limit
+         map/unzip
          map/maybe
          list->values
          values->list
@@ -8,6 +9,10 @@
          equal-datum?)
 
 (require [for-syntax syntax/parse])
+
+; How many thunks are evaluated in equal-datum before they're results are just
+; considered equal.
+(define equal-thunk-limit 100)
 
 (define (map/unzip f n . xs)
   (define (add-values new-values values-list)
@@ -44,13 +49,20 @@
 ; If both values are syntax objects,
 ; their syntax information is strict and only their datum values are compared.
 ; If both values are thunks (procedures which take 0 arguments),
-; they're evaluated and their results are compared.
+; they're evaluated and their results are compared -
+; after equal-thunk-limit thunks are evaluated,
+; comparisons between thunks will just return #true.
 ; Otherwise the values are checked with equal/recur?,
 ; checking sub-values with equal-datum?.
 (define (equal-datum? x y)
-  (cond
-    [(and (syntax? x) (syntax? y))
-     (equal-datum? (syntax->datum x) (syntax->datum y))]
-    [(and (thunk? x) (thunk? y))
-     (equal-datum? (x) (y))]
-    [else (equal?/recur x y equal-datum?)]))
+  (define (equal-datum?/acc x y thunks-left)
+    (define (equal-datum?* x y)
+      (equal-datum?/acc x y thunks-left))
+    (cond
+      [(and (syntax? x) (syntax? y))
+       (equal-datum?* (syntax->datum x) (syntax->datum y))]
+      [(and (thunk? x) (thunk? y))
+       (or (zero? thunks-left)
+           (equal-datum?/acc (x) (y) (- thunks-left 1)))]
+      [else (equal?/recur x y equal-datum?*)]))
+  (equal-datum?/acc x y equal-thunk-limit))

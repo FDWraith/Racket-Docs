@@ -38,15 +38,15 @@
    (foo-cons "Hello" '("World" "!")) => '("Hello" "World" "!")]
   [Effects: "No effects"])
 (define (foo-cons x y)
-  (error "Not implemented"))
+  (cons x y))
 
 (define-docs append-id
   [Syntax: (append-id id:id ...+)]
   [Semantics: "Appends the @id@s together."]
   [Examples:
-   (let [(hello-world 5)] (append-id hello world)) => 5
+   (let [(helloworld 5)] (append-id hello world)) => 5
    (let [(hello 5)] (append-id hello)) => 5
-   (let [(a-b-c 10)] (append-id a b c)) => 10])
+   (let [(abc 10)] (append-id a b c)) => 10])
 (define-syntax (append-id stx)
   (syntax-parse stx
     [(_ id:id ...+)
@@ -54,7 +54,9 @@
                     (string->symbol
                      (foldr string-append ""
                             (map symbol->string
-                                 (syntax->datum #'(id ...))))))]))
+                                 (syntax->datum #'(id ...)))))
+                    stx
+                    stx)]))
 
 (begin-for-syntax
   (define expected-docs
@@ -107,6 +109,7 @@
                                         =>
                                         '("Hello" "World" "!")])))
        (doc-prop 'effects "No effects")))
+                                          
      (doc-entry
       'macro
       #'append-id
@@ -116,21 +119,21 @@
        (doc-prop 'examples
                  (list
                   (eval-example
-                   #'(let [(hello-world 5)] (append-id hello world))
+                   #'(let [(helloworld 5)] (append-id hello world))
                    #'5
-                   #'[(let [(hello-world 5)] (append-id hello world)) => 5])
+                   #'[(let [(helloworld 5)] (append-id hello world)) => 5])
                   (eval-example #'(let [(hello 5)] (append-id hello))
                                 #'5
                                 #'[(let [(hello 5)] (append-id hello)) => 5])
-                  (eval-example #'(let [(a-b-c 10)] (append-id a b c))
+                  (eval-example #'(let [(abc 10)] (append-id a b c))
                                 #'10
-                                #'[(let [(a-b-c 10)] (append-id a b c))
+                                #'[(let [(abc 10)] (append-id a b c))
                                    =>
                                    10])))))))
-
-  (displayln "Ran")
+  
   (unless (empty? (get-all-docs))
     (displayln "Testing ...")
     (check equal-datum?
-           (second (get-all-docs))
-           (second expected-docs))))
+           (get-all-docs)
+           expected-docs)
+    (displayln "Tested")))
