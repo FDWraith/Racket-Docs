@@ -69,23 +69,19 @@
     (define type-prop (extract type-prop? props))
     (define types (doc-prop-value type-prop))
     (define args-info (map (λ (arg type) (string-append "[" arg " " (type-summary type) "]")) args types))
+    (define args-string (string-join args-info " "))
     (define desc-prop? (mk-prop? 'desc))
     (define desc-prop (extract desc-prop? props))
-    
-    ;; TODO: Match each argument to its corresponding signature part (figure this out)
-    (define sig
-      (cond
-        [(doc-prop? type-prop) (syntax->string (doc-prop-value type-prop))]
-        [else (error "signature not found")]))
-    (define purp
-      (cond
-        [(doc-prop? desc-prop) (doc-prop-value desc-prop)]
-        [else (error "purpose not found")]))
-    "@defproc["))
+    (define purp (syntax->string (doc-prop-value desc-prop)))
+    "@defproc[(" name " " args-string ")]{\n" purp "}\n"))
 
 ; Compiles Identifiers to valid Scribble line(s)
 (define (compile-doc-const ent)
-  "something goes here")
+  (begin
+    (define name (syntax->string (doc-entry-id ent)))
+    (define props (doc-entry-props ent))
+    
+    "return here"))
 
 ; Compiles Macros to valid Scribble line(s)
 (define (compile-doc-macro stx)
