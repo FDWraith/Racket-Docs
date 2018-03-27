@@ -3,8 +3,7 @@
 (require  "struct.rkt"
           "types.rkt"
           "utils.rkt"
-          "parse.rkt"
-          racket)
+          "parse.rkt")
 
 (provide compile-docs)
 
@@ -44,7 +43,8 @@
     (define type-prop? (mk-prop? 'type))
     (define type-prop (extract type-prop? dat-body))
     (define type (doc-prop-value type-prop))
-    (define type-info (basic-type-summary type))
+    (println type)
+    (define type-info (basic-type-summary (syntax->datum type)))
     (define type-string (string-append "(code:line " (string-join type-info "\n") ")\n"))
     (define desc-prop? (mk-prop? 'desc))
     (define desc-prop (extract desc-prop? dat-body))

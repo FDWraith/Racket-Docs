@@ -21,6 +21,7 @@
                      "parse/errors.rkt"
                      "struct.rkt"
                      "utils.rkt"
+                     "types.rkt"
                      syntax/parse]
          "types.rkt")
 
@@ -58,11 +59,26 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
        #:with run-tests (tests-for-props (parse-classes (extra-prop ...)))
        #`(begin
            (define entry
-             (val-doc-entry #'head.id
+             (cond
+               [(boolean? (attribute head.args))
+                (const-doc-entry
+                 #'head.id
+                 (list* (sig-doc-prop #'sig.out1)
+                        (purpose-doc-prop purpose.out1)
+                        extra-prop.out1 ...))]
+               [else
+                (func-doc-entry
+                 #'head.id
+                 (list* (args-doc-prop (attribute head.args))
+                        (sig-doc-prop #'sig.out1)
+                        (purpose-doc-prop purpose.out1)
+                        extra-prop.out1 ...))]))
+             
+           #;(val-doc-entry #'head.id
                             (list (args-doc-prop (attribute head.args))
                                   (sig-doc-prop #'sig.out1)
                                   (purpose-doc-prop purpose.out1)
-                                  extra-prop.out1 ...)))
+                                  extra-prop.out1 ...))
            (add-doc! entry 'define-docs stx #'(extra-prop ...))
            run-tests)]
       [(_ id:id
@@ -145,12 +161,12 @@ If documenting a function, also assignes the documented type.
      (define extra-props+ (parse-classes (extra-prop ...)))
      (define entry
        (cond
-         [(false? (attribute head.args))
+         [(boolean? (attribute head.args))
           (const-doc-entry
            #'head.id
-           (list* (sig-doc-proc sig+)
+           (list* (sig-doc-prop sig+)
                   (purpose-doc-prop (parse-class purpose))
-                  extra-props))]
+                  extra-props+))]
          [else
           (func-doc-entry
            #'head.id
@@ -189,7 +205,9 @@ If documenting a function, also assignes the documented type.
         [: type:union-type]
         [Interpretation: interpretation:raw-text]
         extra-prop:extra-data-doc-prop ...)
+     #;(println #'type)
      (define type+ (parse-class type))
+     #;(println type+)
      (define extra-props+ (parse-classes (extra-prop ...)))
      (define entry
        (type-doc-entry
