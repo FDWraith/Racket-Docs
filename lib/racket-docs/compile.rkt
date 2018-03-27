@@ -15,7 +15,7 @@
     (define func-entries (filter (compose not data?) docs))
     (define data-string (string-join (map compile-doc-entry data-entries) "\n"))
     (define func-string (string-join (map compile-doc-entry func-entries) "\n"))
-    (define out (open-output-file path #:exists 'truncate/replace))
+    (define out (open-output-file path #:exists 'error))
     (display "#lang scribble/manual\n\n" out)
     (display "@title{Racket Docs}\n\n" out)
     (display "@section{Data Definitions}\n" out)
@@ -37,52 +37,64 @@
 
 ; Compiles Data Definitions to valid Scribble line(s)
 (define (compile-doc-data dat)
-  (begin
-    (define dat-type (syntax->string (doc-entry-id dat)))
-    (define dat-body (doc-entry-props dat))
-    (define type-prop? (mk-prop? 'type))
-    (define type-prop (extract type-prop? dat-body))
-    (define type (doc-prop-value type-prop))
-    (println type)
-    (define type-info (basic-type-summary (syntax->datum type)))
-    (define type-string (string-append "(code:line " (string-join type-info "\n") ")\n"))
-    (define desc-prop? (mk-prop? 'desc))
-    (define desc-prop (extract desc-prop? dat-body))
-    (define desc (if (empty? desc-prop)
-                     ""
-                     (doc-prop-value desc-prop)))
-    (define example-prop? (mk-prop? 'examples))
-    (define example-prop (extract example-prop? dat-body))
-    (string-append "@defthing[" dat-type " " dat-type"? #:value" 
-                   type-string "]{\n"
-                   desc "\n}\n")))
+  (define dat-type (syntax->string (doc-entry-id dat)))
+  (define dat-body (doc-entry-props dat))
+  (define type-prop? (mk-prop? 'type))
+  (define type-prop (extract type-prop? dat-body))
+  (define type (doc-prop-value type-prop))
+  (println (map syntax->string (syntax->list type)))
+  #;(define type-info (basic-type-summary (syntax->datum type)))
+  #;(define type-string (string-append "(code:line " (string-join type-info "\n") ")\n"))
+  (define type-string (string-append "(code:line " (string-join (map syntax->string (syntax->list type)) " ") ")\n"))
+  (define desc-prop? (mk-prop? 'desc))
+  (define desc-prop (extract desc-prop? dat-body))
+  (define desc (if (empty? desc-prop)
+                   ""
+                   (doc-prop-value desc-prop)))
+  (define example-prop? (mk-prop? 'examples))
+  (define example-prop (extract example-prop? dat-body))
+  (string-append "@defthing[" dat-type " " dat-type"? #:Data Defintion" 
+                 type-string "]{\n"
+                 desc "\n}\n"))
 
 ; Compiles Functions to valid Scribble line(s)
 (define (compile-doc-func ent)
-  (begin
-    (define name (syntax->string (doc-entry-id ent)))
-    (define props (doc-entry-props ent))
-    (define args-prop? (mk-prop? 'args))
-    (define args-prop (extract args-prop? props))
-    (define args (map/stx (λ (stx) (syntax->string stx)) (doc-prop-value args-prop)))
-    (define type-prop? (mk-prop? 'type))
-    (define type-prop (extract type-prop? props))
-    (define types (doc-prop-value type-prop))
-    (define args-info (map (λ (arg type) (string-append "[" arg " " (type-summary type) "]")) args types))
-    (define args-string (string-join args-info " "))
-    (define desc-prop? (mk-prop? 'desc))
-    (define desc-prop (extract desc-prop? props))
-    (define purp (syntax->string (doc-prop-value desc-prop)))
-    "@defproc[(" name " " args-string ")]{\n" purp "}\n"))
+  (define name (syntax->string (doc-entry-id ent)))
+  (define props (doc-entry-props ent))
+  (define args-prop? (mk-prop? 'args))
+  (define args-prop (extract args-prop? props))
+  (define args (map/stx (λ (stx) (syntax->string stx)) (doc-prop-value args-prop)))
+  (define type-prop? (mk-prop? 'type))
+  (define type-prop (extract type-prop? props))
+  (define types (doc-prop-value type-prop))
+  (define args-info (map (λ (arg type) (string-append "[" arg " " (type-summary type) "]")) args types))
+  (define args-string (string-join args-info " "))
+  (define desc-prop? (mk-prop? 'desc))
+  (define desc-prop (extract desc-prop? props))
+  (define purp (doc-prop-value desc-prop))
+  "@defproc[(" name " " args-string ")]{\n" purp "}\n")
 
 ; Compiles Identifiers to valid Scribble line(s)
 (define (compile-doc-const ent)
   (begin
     (define name (syntax->string (doc-entry-id ent)))
     (define props (doc-entry-props ent))
-    
+    (define stx-prop? (mk-prop? 'syntax))
+    (define stx-prop (extract stx-prop? props))
+    (define sem-prop? (mk-prop? 'desc))
+    (define sem-prop (extract sem-prop? props))
     "return here"))
 
 ; Compiles Macros to valid Scribble line(s)
 (define (compile-doc-macro stx)
   "another string heree")
+
+; Compiles Examples
+(define (compile-examples loe)
+  (define compile-example
+    (λ (ex)
+      (cond
+        [(plain-data-example? ex) ""]
+        [(interpret-data-example? ex) ""]
+        [(eval-example? ex) ""])))
+  "")

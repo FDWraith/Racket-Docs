@@ -17,5 +17,5 @@
   [: Int -> Bool]
   [Interpretation: "Huh"])
 
-#;(begin-for-syntax
+(begin-for-syntax
   (compile-docs (get-all-docs)))
