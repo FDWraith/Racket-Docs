@@ -6,7 +6,8 @@
 
 (require [for-syntax "parse.rkt"
                      "struct.rkt"
-                     syntax/parse])
+                     syntax/parse
+                     racket/string])
 
 #;(define-docs define-type
     [Syntax: (define-type defd:id defn)]
@@ -53,6 +54,8 @@ characters) and replaces them in defn to get a result.
     [Syntax:
      (define-type/parsed+un defd:id defn)
      (define-type/parsed+un (defd:id param:id ...) defn ...)
+     (define-type/parsed+un (defd:id param:id ... . rest:id) #:no-label
+       defn ...)
      (define-type/parsed+un (defd:id param:id ... . rest:id) defn ...)]
     [Semantics: #<<"
 Assumes defn is already parsed - e.g. it can be a primitive type.
@@ -68,11 +71,44 @@ and creates a result using (defn ...).
 (define-syntax define-type/parsed+un
   (syntax-parser
     [(_ defd:id defn)
+     #:with defd-label (datum->syntax #'defd (symbol->string (syntax-e #'defd)))
      #'(define-for-syntax defd
-         (λ () defn))]
+         (labeled-type (λ () defn) defd-label))]
     [(_ (defd:id param:id ...) defn ...)
+     #:with defd-head-label
+     (datum->syntax #'defd (symbol->string (syntax-e #'defd)))
      #'(define-for-syntax (defd param ...)
+         ; Sometimes types in rest aren't be parsed, crashing label ...
+         (define defd-label
+           (if (or (not (procedure? param)) ...)
+               "???"
+               (type-con-label (list defd-head-label
+                                     (type-label param) ...))))
+         (labeled-type (λ () defn ...) defd-label))]
+    [(_ (defd:id param:id ... . rest:id) #:no-label defn ...)
+     #:with defd-head-label
+     (datum->syntax #'defd (symbol->string (syntax-e #'defd)))
+     #'(define-for-syntax (defd param ... . rest)
          (λ () defn ...))]
     [(_ (defd:id param:id ... . rest:id) defn ...)
+     #:with defd-head-label
+     (datum->syntax #'defd (symbol->string (syntax-e #'defd)))
      #'(define-for-syntax (defd param ... . rest)
-         (λ () defn ...))]))
+         ; Sometimes types in rest aren't be parsed, crashing label ...
+         (define defd-label
+           (if (or (not (procedure? param)) ...)
+               "???"
+               (type-con-label (list* defd-head-label
+                                      (type-label param) ...
+                                      (map type-label rest)))))
+         (labeled-type (λ () defn ...) defd-label))]))
+
+#;(define-docs (type-con-label sub-labels)
+    [Signature: [Listof String] -> String]
+    [Purpose: #<<"
+Creates a label for a type constructor given the labels for its arguments.
+"
+              ]
+    [Examples: (type-con-label (list "Fooof" "Bar" "Baz")) => "[Fooof Bar Baz"])
+(define-for-syntax (type-con-label sub-labels)
+  (string-join sub-labels " " #:before-first "[" #:after-last "]"))

@@ -1,5 +1,7 @@
 #lang racket-docs
 
+(require [for-syntax syntax/parse])
+
 (define-data String/False
   [: - String
      - #false]
@@ -16,6 +18,16 @@
   [Signature: Int Int -> Int]
   [Purpose: "Adds 2 integers."])
 (define +int +)
+
+(define-docs (+list x y)
+  [Signature: [Listof String] [Listof String] -> [Listof String]]
+  [Purpose: "Combines 2 lists"])
+(define +list append)
+
+(define-docs (+list-5 x y)
+  [Signature: [Listof String] [Listof 5] -> [Listof String]]
+  [Purpose: "Combines 2 lists"])
+(define +list-5 append)
 
 (define-docs provide
   [Syntax: (provide identifier ...)]
@@ -38,9 +50,24 @@
    (+ 2.5 3.5) => 6.0
    (+ 3 4) => 7])
 
+(define-docs (cons x y)
+  [Signature: Any [Listof Any] -> [Listof Any]]
+  [Purpose: "Prepends an element to a list."]
+  [Examples:
+   (cons 1 '(2 3 4)) => '(1 2 3 4)])
+
+(define-syntax list+
+  (syntax-parser
+    [(_) #''()]
+    [(_ x xs ...) #'(cons x (list+ xs ...))]))
+
 (+int 5 7)
 (begin-without-type-checking
   (+int 3.5 3.6)
-  (+int (+ 1 2.5) 3))
-(+int (+ 1 5) 3)
+  (+int (+ 1 2.5) 3)
+  (+list (list+ "Hello" 5 "world") (list+ "!"))
+  (+list-5 (list+ "Hello" "world" "") (list+ 7)))
+(+int 5 3)
+(+list (list+ "Hello" "world" "") (list+ "!"))
+(+list-5 (list+ "Hello" "world" "") (list+ 5))
 (displayln "World")

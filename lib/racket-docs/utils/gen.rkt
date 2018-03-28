@@ -6,7 +6,9 @@
          list->values
          values->list
          thunk?
-         equal-datum?)
+         equal-datum?
+         idx->ordinal
+         cardinal->ordinal)
 
 (require [for-syntax syntax/parse])
 
@@ -66,3 +68,27 @@
            (equal-datum?/acc (x) (y) (- thunks-left 1)))]
       [else (equal?/recur x y equal-datum?*)]))
   (equal-datum?/acc x y equal-thunk-limit))
+
+; Nat -> String
+; Converts an index into an ordinal.
+; Examples: 0 -> 1st, 1 -> 2nd, 2 -> 3rd, ...
+(define (idx->ordinal idx)
+  (cardinal->ordinal (add1 idx)))
+
+; Pos -> String
+; Converts a cardinal into an ordinal.
+; Examples: 1 -> 1st, 2 -> 2nd, 3 -> 3rd, ...
+(define (cardinal->ordinal card)
+  (format "~a~a" card (ordinal-suffix card)))
+
+; Pos -> String
+; The suffix for the ordinal corresponding to the cardinal.
+; Examples: 1 -> 1st, 2 -> 2nd, 3 -> 3rd, ...
+(define (ordinal-suffix card)
+  (cond
+    [(> card 100) (ordinal-suffix (- card 100))]
+    [(> card 20) (ordinal-suffix (- card 20))]
+    [(= card 1) "st"]
+    [(= card 2) "nd"]
+    [(= card 3) "rd"]
+    [else "th"]))

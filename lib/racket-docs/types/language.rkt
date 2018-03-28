@@ -4,10 +4,12 @@
          typed-app
          begin-without-type-checking)
 
-(require [for-syntax "subtype.rkt"
+(require [for-syntax "error.rkt"
+                     "subtype.rkt"
                      "struct.rkt"
                      "../utils.rkt"
-                     syntax/parse]
+                     syntax/parse
+                     racket/function]
          "use.rkt"
          "builtin.rkt")
 
@@ -22,7 +24,7 @@ Assigns the datum its proper type.
   (syntax-parser
     [(_ . x) (assign-type/stx/parsed #'(#%datum . x) (datum-type #'x))]))
 
-#;(define-docs datum-type
+#;(define-docs (datum-type stx)
     [Signature: Syntax -> Type]
     [Semantics: "The primitive type of the datum."])
 (define-for-syntax datum-type
@@ -52,17 +54,16 @@ function's type.
         ; wraps in syntax without the property.
         (skip-type-check? #'f) #'(#%app f x ...)]
        [else
+        (define x-stx-list (syntax->list #'(x ...)))
         (define-values (f+-stx f-type) (type-of #'f))
         (define-values (x+-stx-list x-types)
-          (map/unzip type-of 2 (syntax->list #'(x ...))))
+          (map/unzip type-of 2 x-stx-list))
         (define x+-stxs (datum->syntax #'(x ...) x+-stx-list))
         (unless (params<? x-types f-type)
-          (raise-syntax-error '#%app #<<"
-Given parameters don't conform to function's parameters.
-Either wrong number of parameters, or the parameter's types
-aren't subtypes of the function's parameter types.
-"
-                              this-syntax))
+          (raise-app-error (get-app-error x-types f-type)
+                           #'f
+                           x-stx-list
+                           this-syntax))
         (with-syntax [(f+ f+-stx)
                       ((x+ ...) x+-stxs)]
           (define out-gen-type
@@ -71,6 +72,19 @@ aren't subtypes of the function's parameter types.
           (define out-shape-type (λ () (cons f-type x-types)))
           (define out-type [Intersection out-gen-type out-shape-type])
           (assign-type/stx/parsed #'(#%app f+ x+ ...) out-type))])]))
+
+#;(define-docs (raise-app-error err f-stx x-stxs full-stx)
+    [Signature: ParamError [Listof Syntax] Syntax -> Syntax]
+    [Purpose:
+     "Raises a syntax error describing the function application error."])
+(define-for-syntax (raise-app-error err f-stx x-stxs full-stx)
+  (define f-datum (syntax-e f-stx))
+  (apply raise-syntax-error
+         (and (symbol? f-datum) f-datum)
+         (app-error-msg err)
+         full-stx
+         (map (curry list-ref x-stxs)
+              (app-error-param-idxs err))))
 
 #;(define-docs (begin-without-type-checking)
     [Syntax: (begin-without-type-checking expr ...)]

@@ -39,7 +39,7 @@ A value belongs to this type if it belongs to all of the sub-types.
                 ]
     [Examples:
      [Intersection String Bool] => (λ () (intersection (list String Bool)))])
-(define-type/parsed+un (Intersection . xs)
+(define-type/parsed+un (Intersection . xs) #:no-label
   (intersection xs))
 
 #;(define-docs [Union . Xs]
@@ -51,7 +51,7 @@ A value belongs to this type if it belongs to any of the sub-types.
                 ]
     [Examples:
      [Union String Bool] => (λ () (union (list String Bool)))])
-(define-type/parsed+un (Union . xs)
+(define-type/parsed+un (Union . xs) #:no-label
   (union xs))
 
 #;(define-docs [-> X . Xs]
@@ -62,7 +62,7 @@ param types, and the last parameter as the output type.
 "
                 ]
     [Examples: [-> String Bool] => (λ () (func (list String) Bool))])
-(define-type/parsed+un (-> arg . rest-args)
+(define-type/parsed+un (-> arg . rest-args) #:no-label
   (define args (cons arg rest-args))
   (match-define-values (params (list out)) (split-at-right args 1))
   (func params out))

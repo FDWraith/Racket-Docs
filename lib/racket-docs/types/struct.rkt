@@ -1,6 +1,7 @@
 #lang racket
 
-(provide [struct-out primitive]
+(provide [struct-out labeled-type]
+         [struct-out primitive]
          [struct-out intersection]
          [struct-out union]
          [struct-out func]
@@ -9,10 +10,12 @@
          ->/parsed
          expr?
          try-func-out
-         type-summary)
+         type-summary
+         type-label)
 
 #;(define-data Type
-  [: -> UnwrappedType]
+  [: - (labeled-type [-> UnwrappedType] String)
+     - -> UnwrappedType]
   [Interpretation: #<<"
 A type specified in the type system.
 Some values are instances of the type, some aren't.
@@ -20,6 +23,8 @@ Types are wrapped in thunks so they can be recursive,
 e.g. you can create the type LoS = (cons String LoS).
 "
                    ])
+(struct labeled-type [proc label]
+  #:property prop:procedure (struct-field-index proc))
 
 #;(define-data UnwrappedType
   [: - PrimitiveType
@@ -105,6 +110,15 @@ but not (cons \"Z\" 7), (foo \"?\" \"E\"), or 'alskdj.
 "
              <= (expr `(cons ,String ,String))])
 
+#;(define-docs summary-recur-limit
+    [Signature: Nat]
+    [Purpose: #<<"
+How many layers of sub-types will be used in a type summary or label,
+before ... is used. Prevents unnecessary or infinite recursion.
+"
+              ])
+(define summary-recur-limit 10)
+
 #;(define-docs (Intersection/parsed xs)
     [Signature: Type -> Type]
     [Semantics: #<<"
@@ -152,8 +166,10 @@ Unlike regular ->, doesn't parse the given types.
      (expr? 'a) => #true
      (expr? `(a ,String) => #true)])
 (define (expr? x)
-  (or (symbol? x)
-      (list? x)))
+  (not (or (primitive? x)
+           (intersection? x)
+           (union? x)
+           (func? x))))
 
 #;(define-docs (try-func-out x)
     [Signature: Type -> [Maybe Type]]
@@ -175,26 +191,71 @@ Unlike regular ->, doesn't parse the given types.
 
 #;(define-docs (type-summary type)
     [Signature: Type -> String]
-    [Purpose: "A summary of the type, for debugging."]
+    [Purpose: "A detailed summary of the type, useful for debugging."]
     [Examples:
-     (type-summary (primitive "String")) => "String"
-     (type-summary (intersection (list (primitive "Nat") 0)) =>
-                   "[Intersection Nat '0]")])
+     (type-summary (λ () (primitive "String"))) => "String"
+     (type-summary Nat) => "[Intersection Pos '0]"])
 (define (type-summary type)
+  (define (type-summary/acc type recurs-left)
+    (cond
+      [(zero? recurs-left) "..."]
+      [else
+       (type-summary/recur type (const #true)
+                           (curryr type-summary/acc (sub1 recurs-left)))]))
+  (type-summary/acc type summary-recur-limit))
+
+#;(define-docs (type-label type)
+    [Signature: Type -> String]
+    [Purpose: "A brief label of the type, useful for displaying to the user."]
+    [Examples:
+     (type-label (λ () (primitive "String"))) => "String"
+     (type-label Nat) => "Nat"])
+(define (type-label type)
+  (define (type-label/acc type recurs-left)
+    (cond
+      [(labeled-type? type) (labeled-type-label type)]
+      [(zero? recurs-left) "..."]
+      [else (type-summary/recur type (λ (x) (not (expr? (x))))
+                                (curryr type-label/acc (sub1 recurs-left)))]))
+  (type-label/acc type summary-recur-limit))
+
+#;(define-docs (type-summary/recur type sub-filter sub-summary)
+    [Signature: Type [Type -> Bool] [Type -> String] -> String]
+    [Purpose: #<<"
+A summary of the type. Ignores intersection sub-types which return false in
+@sub-filter (pretends that they don't exist), and summarizes sub-types via
+@sub-summary.
+"
+              ]
+    [Examples:
+     (type-summary/recur (λ () (primitive "String")) (λ (x) "foo")) => "String"
+     (type-summary/recur Nat (λ (x) "foo")) => "[Intersection foo foo]"])
+(define (type-summary/recur type sub-filter sub-summary)
   (define type+ (type))
   (cond
     [(primitive? type+) (primitive-label type+)]
     [(intersection? type+)
-     (format "[Intersection ~a]"
-             (string-join (map type-summary (intersection-subs type+)) " "))]
+     (define intersection-subs* (filter sub-filter (intersection-subs type+)))
+     (cond
+       [(empty? intersection-subs*) "Any"]
+       [(empty? (rest intersection-subs*))
+        (sub-summary (first intersection-subs*))]
+       [else
+         (format "[Intersection ~a]"
+                 (string-join (map sub-summary intersection-subs*) " "))])]
     [(union? type+)
-     (format "[Union ~a]"
-             (string-join (map type-summary (union-subs type+)) " "))]
+     (cond
+       [(empty? (union-subs type+)) "Nothing/Unknown"]
+       [(empty? (rest (union-subs type+)))
+        (sub-summary (first (union-subs type+)))]
+       [else
+        (format "[Union ~a]"
+                (string-join (map sub-summary (union-subs type+)) " "))])]
     [(func? type+)
      (format "[~a -> ~a]"
-             (string-join (map type-summary (func-params type+)) " ")
-             (type-summary (func-out type+)))]
+             (string-join (map sub-summary (func-params type+)) " ")
+             (sub-summary (func-out type+)))]
     [(list? type+)
      (format "(~a)"
-             (string-join (map type-summary type+) " "))]
-    [else (format "'~a" type+)]))
+             (string-join (map sub-summary type+) " "))]
+    [else (format "~v" type+)]))

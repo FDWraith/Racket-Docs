@@ -72,35 +72,33 @@ Also expands the syntax.
        (values #'(cons foo 4) `(cons ,foo.type ,Nat))])
   (define (type-of stx)
     (define-values (stx+ gen-type) (gen-type-of stx))
-    (define-values (stx++ shape-type) (shape-type-of stx+))
-    (values stx++ [Intersection gen-type shape-type]))
+    (define shape-type (shape-type-of stx+))
+    (define type
+      (if shape-type
+          [Intersection gen-type shape-type]
+          gen-type))
+    (values stx+ type))
 
   #;(define-docs shape-type-of
-      [Signature: Syntax -> Term Type]
+      [Signature: Syntax -> [Maybe Type]]
       [Purpose: #<<"
 Gets the literal type of the value encoded in the syntax.
-Also may expand sub-terms in the syntax, because it needs to get their types.
+If the syntax is a function application (list) or pair, returns #false,
+because it should have a literal type assigned if it would be used.
 "
                 ]
       [Examples:
-       (shape-type-of #'foo) => (values #'foo (λ () 'foo))
-       (shape-type-of #'(cons 0 1)) =>
-       (values #'(cons 0 1)
-               (λ () (list (type-of #'cons) (type-of #'0) (type-of #'1))))])
+       (shape-type-of #'foo) => (λ () 'foo)
+       (shape-type-of #'(cons 0 1)) => #false])
   (define (shape-type-of stx)
     (define x (syntax-e stx))
     (cond
-      [(and (list? x)
-            (cons? x)
-            (equal? (syntax-e (first x)) 'quote))
-       ; "Over-expanded" datum - e.g. 7 gets expanded into '7.
-       (shape-type-of (second x))]
-      [(list? x)
-       (define-values (sub-stxs sub-types)
-         (map/unzip type-of 2 x))
-       (values (datum->syntax stx sub-stxs)
-               (λ () sub-types))]
-      [else (values stx (λ () x))]))
+      [(cons? x)
+       (if (equal? (syntax-e (car x)) 'quote)
+           ; "Over-expanded" datum - e.g. 7 gets expanded into '7.
+           (shape-type-of (second x))
+           #false)]
+      [else (λ () x)]))
   
   #;(define-docs gen-type-of
       [Signature: Syntax -> Syntax Type]
