@@ -48,5 +48,5 @@
   (+list-5 (list "Hello" "world" "") (list 7)))
 (+int 5 3)
 (+list (list "Hello" "world" "") (list "!"))
-(+list-5 (list "Hello" "world" "") (list 7))
+(+list-5 (list "Hello" "world" "") (list 5))
 (displayln "World")

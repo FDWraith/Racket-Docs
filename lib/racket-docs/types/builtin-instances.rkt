@@ -50,7 +50,11 @@
           (syntax-parser
             [(_) #''()]
             [(_ x xs ....)
-             (datum->syntax this-syntax
-                            (list (datum->syntax this-syntax 'cons)
-                                  #'x
-                                  #'(#,(local 'list) xs ....)))])))))
+             (datum->syntax
+              this-syntax
+              (list (datum->syntax this-syntax 'cons)
+                    #'x
+                    (datum->syntax
+                     this-syntax
+                     (cons (datum->syntax this-syntax 'list)
+                           (syntax->list #'(xs ....))))))])))))
