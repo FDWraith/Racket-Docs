@@ -4,9 +4,12 @@
                      read
                      read-syntax
                      read-language
+                     #%module-begin
                      #%datum
-                     #%app]
-         [rename-out (typed-datum #%datum)
+                     #%app
+                     list]
+         [rename-out (typed-module-begin #%module-begin)
+                     (typed-datum #%datum)
                      (typed-app #%app)]
          
          [for-syntax define-docs
@@ -18,7 +21,6 @@
          define-data
          define-syntax/docs
          begin-without-type-checking
-         
          [all-from-out "types/builtin.rkt"])
 
 (require [for-syntax "compile.rkt"]

@@ -4,6 +4,7 @@
                      Intersection
                      Union
                      ->
+                     Forall
                      
                      ; Primitive Types
                      Void
@@ -25,7 +26,8 @@
                      Maybe
                      List])
 
-(require [for-syntax "struct.rkt"
+(require [for-syntax [for-syntax racket/base]
+                     "struct.rkt"
                      racket/match
                      racket/list]
          "create.rkt")
@@ -66,6 +68,19 @@ param types, and the last parameter as the output type.
   (define args (cons arg rest-args))
   (match-define-values (params (list out)) (split-at-right args 1))
   (func params out))
+
+#;(define-docs Forall
+    [Syntax: [Forall X F]]
+    [Semantics: #<<"
+Creates a parameterized type, which is computed by replacing all occurrences
+of the type parameter @X in @F.
+"
+                ]
+    [Examples:
+     [Forall X [-> X String X]] =>
+     (λ () (forall (λ (X) (λ () (func (list X String) X)))))])
+(define-type/syntax (Forall x f) #:no-label
+  #'(forall (λ (x) f)))
 
 (define-type/primitive Void)
 (define-type/primitive Bool)

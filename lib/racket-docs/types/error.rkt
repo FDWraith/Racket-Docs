@@ -191,6 +191,7 @@ returns an error indicating this.
     [(union? f+)
      (ormap (curry get-app-error xs) (union-subs f+))]
     [(func? f+) (get-params-error xs (func-params f+))]
+    [(forall? f+) (get-app-error xs (app-forall f+ xs))]
     [else (not-func f)]))
 
 #;(define-docs (get-rough-overload-error fs xs)
@@ -209,7 +210,7 @@ returns an error indicating this.
          [(list (list pre-intersection pre-no-overloads) ...)
           (list (list intersection no-overloads)
                 (list post-intersection post-no-overloads) ...)]
-         (splitf-at (map list fs errs) (compose no-overloads? second)))
+         (splitf-at (map list fs errs) (compose not no-overloads? second)))
        (match-define (list (bad-overload intersection-subs overload-errs) ...)
          (no-overloads-sub-errs no-overloads))
        (try-rough-overload-error

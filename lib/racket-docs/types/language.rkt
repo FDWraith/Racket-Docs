@@ -1,10 +1,12 @@
 #lang racket
 
-(provide typed-datum
+(provide typed-module-begin
+         typed-datum
          typed-app
          begin-without-type-checking)
 
-(require [for-syntax "error.rkt"
+(require [for-syntax "builtin-instances.rkt"
+                     "error.rkt"
                      "subtype.rkt"
                      "struct.rkt"
                      "../utils.rkt"
@@ -13,12 +15,17 @@
          "use.rkt"
          "builtin.rkt")
 
+#;(define-docs typed-module-begin
+    [Syntax: (typed-module-begin x ...)]
+    [Semantics: "Adds builtin instance types to the module."])
+(define-syntax typed-module-begin
+  (syntax-parser
+    [(_ x ...)
+     #`(#%module-begin #,(add-builtin-instances this-syntax) x ...)]))
+
 #;(define-docs typed-datum
     [Syntax: (typed-datum . x)]
-    [Semantics: #<<"
-Assigns the datum its proper type.
-"
-                ]
+    [Semantics: "Assigns the datum its proper type."]
     [Examples: #'(typed-datum . 5) => (assign-type #'5 Integer)])
 (define-syntax typed-datum
   (syntax-parser

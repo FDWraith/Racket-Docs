@@ -2,9 +2,12 @@
 
 (provide define-type
          define-type/primitive
-         define-type/parsed+un)
+         define-type/parsed+un
+         define-type/syntax)
 
-(require [for-syntax "parse.rkt"
+(require [for-syntax [for-syntax syntax/parse
+                                 racket/base]
+                     "parse.rkt"
                      "struct.rkt"
                      syntax/parse
                      racket/string])
@@ -102,6 +105,21 @@ and creates a result using (defn ...).
                                       (type-label param) ...
                                       (map type-label rest)))))
          (labeled-type (λ () defn ...) defd-label))]))
+
+#;(define-docs define-type/syntax
+    [Syntax: (define-type/syntax (defd:id x ...) #:no-label defn)]
+    [Semantics: #<<"
+Creates a new parameterized type macro, @defd, so that @(defd x ...) expands
+into @defn.
+"
+                ])
+(define-syntax define-type/syntax
+  (syntax-parser
+    [(_ (defd:id x ...) #:no-label defn)
+     #'(begin-for-syntax
+         (define-syntax defd
+           (syntax-parser
+             [(_ x ...) #`(λ () #,defn)])))]))
 
 #;(define-docs (type-con-label sub-labels)
     [Signature: [Listof String] -> String]

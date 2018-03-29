@@ -55,7 +55,9 @@ Note that an unknown type is a subtype of any type.
      (type<? Int Num) => #true
      (type<? Unknown Int) => #true])
 (define (type<? x y)
-  (type<?/limit x y type-comparison-limit))
+  (type<?/limit (unparameterize x (list y))
+                (unparameterize y (list x))
+                type-comparison-limit))
 
 #;(define-docs (type<?/limit x y limit)
     [Signature: Type Type Nat -> Bool]
@@ -114,7 +116,9 @@ and each element in @xs is a subtype of the element in @ys with the same index.
 "
               ])
 (define (types<? xs ys)
-  (types<?/limit xs ys type-comparison-limit))
+  (types<?/limit (map (curryr unparameterize ys) xs)
+                 (map (curryr unparameterize xs) ys)
+                 type-comparison-limit))
 
 #;(define-docs (types<?/limit xs ys limit)
     [Signature: [Listof Type] [Listof Type] -> Bool]
@@ -146,6 +150,7 @@ Otherwise, #false.
     [(union? f+)
      (andmap (curry params<? xs) (union-subs f+))]
     [(func? f+) (types<? xs (func-params f+))]
+    [(forall? f+) (params<? xs (app-forall f+ xs))]
     [else #false]))
 
 #;(define-docs (refine-for-params xs f)
@@ -167,4 +172,5 @@ returns only the functions which satisfy the given parameters.
     [(func? f+)
      (and (types<? xs (func-params f+))
           f)]
+    [(forall? f+) (refine-for-params xs (app-forall f+ xs))]
     [else #false]))
