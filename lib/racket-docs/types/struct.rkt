@@ -15,7 +15,8 @@
          unparameterize
          app-forall
          type-summary
-         type-label)
+         type-label
+         type-label/basic)
 
 #;(define-data Type
   [: - (labeled-type [-> UnwrappedType] String)
@@ -304,6 +305,12 @@ to yield types which can then be related with @xs.
                                 (λ (x) (not (expr? (x))))
                                 (curryr type-label/acc (sub1 recurs-left)))]))
   (type-label/acc type summary-recur-limit))
+
+(define (type-label/basic type)
+  (define type+ (type))
+  (cond
+    [(union? type+) (map type-label (union-subs type+))]
+    [else (list (type-label type))]))
 
 #;(define-docs (type-summary/recur type eid sub-filter sub-summary)
     [Signature: Type Nat [Type -> Bool] [Type -> String] -> String]
