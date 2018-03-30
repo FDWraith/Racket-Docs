@@ -9,29 +9,31 @@
 
 ; Effect: Generates a Scribble File from the documentation
 (define (compile-docs docs [path "temp.scrbl"])
-  (define data? (λ (ent) (symbol=? (doc-entry-type ent) 'type)))
-  (define func? (λ (ent) (symbol=? (doc-entry-type ent) 'func)))
-  (define const? (λ (ent) (symbol=? (doc-entry-type ent) 'const)))
-  (define macro? (λ (ent) (symbol=? (doc-entry-type ent) 'macro)))
-  (define data-entries (filter data? docs))
-  (define func-entries (filter func? docs))
-  (define const-entries (filter const? docs))
-  (define macro-entries (filter macro? docs))
-  (define data-string (string-join (map compile-doc-data data-entries) "\n"))
-  (define func-string (string-join (map compile-doc-func func-entries) "\n"))
-  (define const-string (string-join (map compile-doc-const const-entries) "\n"))
-  (define macro-string (string-join (map compile-doc-macro macro-entries) "\n"))
+  (define (mk-ent-type? type)
+    (λ (ent) (symbol=? (doc-entry-type ent) type)))
+  (define (mk-ent-string type)
+    (λ (type) (string-join (map compile-doc-entry (filter (mk-ent-type? type)) docs)) "\n"))
+  (define out-string
+    (map (λ (section type)
+           (string-append section "\n" (mk-ent-string type) "\n"))
+         (list "@section{Data Definitions}\n"
+               "@section{Constant Definitions}\n"
+               "@section{Function Definitions}\n" "")
+         (list 'type 'func 'const 'macro)))
   (define out (open-output-file path #:exists 'error))
   (display "#lang scribble/manual\n\n" out)
   (display "@title{Racket Docs}\n\n" out)
-  (display "@section{Data Definitions}\n" out)
-  (display (string-append data-string "\n\n") out)
-  (display "@section{Constant Definitions}\n" out)
-  (display (string-append const-string "\n\n") out)
-  (display "@section{Function Definitions}\n" out)
-  (display (string-append func-string "\n") out)
-  (display macro-string out)
+  (display out-string out)
   (close-output-port out))
+
+; Compiles Doc Entries to valid Scribble line(s)
+(define (compile-doc-entry ent)
+  (define ent-type (doc-entry-type ent))
+  (cond
+    [(symbol=? ent-type 'type) (compile-doc-data ent)]
+    [(symbol=? ent-type 'func) (compile-doc-func ent)]
+    [(symbol=? ent-type 'const) (compile-doc-const ent)]
+    [(symbol=? ent-type 'macro) (compile-doc-macro ent)]))
 
 ; Compiles Data Definitions to valid Scribble line(s)
 (define (compile-doc-data dat)
@@ -42,7 +44,7 @@
   (define type-string (string-append "(code:line " (string-join (type-label/basic type) "\n") ")\n"))
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define desc (doc-prop-value desc-prop))
-  (define example-prop (extract (mk-prop? 'examples) dat-body))
+  (define example-prop (extract (mk-prop? 'examples) props))
   (string-append "@defthing[ #:kind \"Data Defintion\" " dat-type " " dat-type"? "  
                  "#:value " type-string "]{\n"
                  desc "\n}\n"))
