@@ -1,8 +1,10 @@
-#lang racket-docs
+#lang racket
+
+(require "../lib/racket-docs/main.rkt")
 
 (define-data String/False
   [: - String
-     - #false]
+     - Bool]
   [Interpretation: "A string or false."]
   [Examples: "Hello" "World" #f])
 
@@ -27,11 +29,11 @@
   [Purpose: "Combines 2 lists"])
 (define +list-5 append)
 
-(define-docs provide
+#;(define-docs provide
   [Syntax: (provide identifier ...)]
   [Semantics: "Exports @identifier, so other modules can import it."])
 
-(begin-for-syntax
+#;(begin-for-syntax
   #;(define-docs phase1-val
     [Signature: Int]
     [Purpose: "A value which could be used by macros"]
@@ -39,6 +41,9 @@
   (define phase1-val 5)
   
   (displayln "Hello"))
+
+(begin-for-syntax
+  (compile-docs (get-all-docs) "pkg.scrbl"))
 
 (+int 5 7)
 (begin-without-type-checking

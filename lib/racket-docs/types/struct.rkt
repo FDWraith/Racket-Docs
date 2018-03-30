@@ -312,6 +312,7 @@ to yield types which can then be related with @xs.
     [(union? type+) (map type-label (union-subs type+))]
     [else (list (type-label type))]))
 
+
 #;(define-docs (type-summary/recur type eid sub-filter sub-summary)
     [Signature: Type Nat [Type -> Bool] [Type -> String] -> String]
     [Purpose: #<<"

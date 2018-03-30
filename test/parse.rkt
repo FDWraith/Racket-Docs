@@ -89,24 +89,15 @@
       'const
       #'foo
       (list
-<<<<<<< HEAD
-       (doc-prop 'type #'Int)
-=======
        (doc-prop 'args #false)
        (doc-prop 'type Int)
->>>>>>> ede109170889621011904afa5188a19e71967617
        (doc-prop 'desc "Something")))
      (doc-entry
       'func
       #'foo-cons
       (list
-<<<<<<< HEAD
-       (doc-prop 'args #'(list foo foos))
-       (doc-prop 'type #'[-> Foo [Listof Foo] Foo])
-=======
        (doc-prop 'args #'(foo foos))
        (doc-prop 'type [-> Foo [Listof Foo] Foo])
->>>>>>> ede109170889621011904afa5188a19e71967617
        (doc-prop 'desc "Prepends @foo onto @foos")
        (doc-prop 'examples
                  (list (eval-example #'(foo-cons 1 '())

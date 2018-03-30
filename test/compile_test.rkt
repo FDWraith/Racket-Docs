@@ -17,5 +17,10 @@
   [: Int -> Bool]
   [Interpretation: "Huh"])
 
+(define-docs WORLD_STATE
+  [Signature: Nat]
+  [Purpose: "Describes the state of the world"])
+(define WORLD_STATE 20)
+
 (begin-for-syntax
   (compile-docs (get-all-docs)))
