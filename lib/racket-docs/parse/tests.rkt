@@ -4,7 +4,8 @@
 
 (require "../struct.rkt"
          syntax/parse
-         [for-template rackunit
+         [for-template "../utils.rkt"
+                       rackunit
                        racket/base])
 
 #;(define-docs (tests-for-props doc-props)
@@ -49,18 +50,24 @@ The result syntax adds tests from the examples to the test submodule.
      (test-for-example (interpret-data-example #'(println "a") "Prints a.")) =>
      #'(println "a")])
 (define (test-for-example example)
-  (cond
-    [(eval-example? example)
-     (define res-datum
-       (list #'check-equal?
+  (define test-datum
+    (cond
+      [(eval-example? example)
+       (list #'check
+             #'equal-datum?
              (eval-example-expr example)
-             (eval-example-expected example)))
-     (define res-stx (eval-example-stx example))
-     (datum->syntax res-stx
-                    res-datum
-                    res-stx
-                    res-stx)]
-    [(plain-data-example? example)
-     (plain-data-example-expr example)]
-    [(interpret-data-example? example)
-     (interpret-data-example-expr example)]))
+             (eval-example-expected example)
+             #'"Example doesn't evaluate to what's expected")]
+      [(plain-data-example? example)
+       (list #'check-not-exn
+             #`(λ () #,(plain-data-example-expr example))
+             "While evaluating an example")]
+      [(interpret-data-example? example)
+       (list #'check-not-exn
+             #`(λ () #,(interpret-data-example-expr example))
+             "While evaluating an interpreted example")]))
+  (define test-stx (example-stx example))
+  (datum->syntax test-stx
+                 test-datum
+                 test-stx
+                 test-stx))

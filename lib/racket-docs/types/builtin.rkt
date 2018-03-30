@@ -4,6 +4,7 @@
                      Intersection
                      Union
                      ->
+                     Forall
                      
                      ; Primitive Types
                      Void
@@ -25,7 +26,8 @@
                      Maybe
                      List])
 
-(require [for-syntax "struct.rkt"
+(require [for-syntax [for-syntax racket/base]
+                     "struct.rkt"
                      racket/match
                      racket/list]
          "create.rkt")
@@ -39,7 +41,7 @@ A value belongs to this type if it belongs to all of the sub-types.
                 ]
     [Examples:
      [Intersection String Bool] => (λ () (intersection (list String Bool)))])
-(define-type/parsed+un (Intersection . xs)
+(define-type/parsed+un (Intersection . xs) #:no-label
   (intersection xs))
 
 #;(define-docs [Union . Xs]
@@ -51,7 +53,7 @@ A value belongs to this type if it belongs to any of the sub-types.
                 ]
     [Examples:
      [Union String Bool] => (λ () (union (list String Bool)))])
-(define-type/parsed+un (Union . xs)
+(define-type/parsed+un (Union . xs) #:no-label
   (union xs))
 
 #;(define-docs [-> X . Xs]
@@ -62,10 +64,23 @@ param types, and the last parameter as the output type.
 "
                 ]
     [Examples: [-> String Bool] => (λ () (func (list String) Bool))])
-(define-type/parsed+un (-> arg . rest-args)
+(define-type/parsed+un (-> arg . rest-args) #:no-label
   (define args (cons arg rest-args))
   (match-define-values (params (list out)) (split-at-right args 1))
   (func params out))
+
+#;(define-docs Forall
+    [Syntax: [Forall X F]]
+    [Semantics: #<<"
+Creates a parameterized type, which is computed by replacing all occurrences
+of the type parameter @X in @F.
+"
+                ]
+    [Examples:
+     [Forall X [-> X String X]] =>
+     (λ () (forall (λ (X) (λ () (func (list X String) X)))))])
+(define-type/syntax (Forall x f) #:no-label
+  #'(forall (λ (x) f)))
 
 (define-type/primitive Void)
 (define-type/primitive Bool)
