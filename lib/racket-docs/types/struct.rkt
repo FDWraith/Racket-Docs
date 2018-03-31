@@ -19,7 +19,7 @@
          app-forall
          type-summary
          type-label
-         type-label/basic)
+         type-label/union)
 
 (require "../utils/gen.rkt")
 
@@ -374,7 +374,7 @@ These could be used as parameters to make a forall type match @x.
     [Purpose: "A brief label of the type, useful for displaying to the user."]
     [Examples:
      (type-label (λ () (primitive "String"))) => "String"
-     (type-label Nat) => "Nat"])
+     (type-label (λ () (primitive "Nat"))) => "Nat"])
 (define (type-label type)
   (define (type-label/acc type recurs-left)
     (cond
@@ -385,6 +385,24 @@ These could be used as parameters to make a forall type match @x.
                                 show-in-intersection-label?
                                 (curryr type-label/acc (sub1 recurs-left)))]))
   (type-label/acc type summary-recur-limit))
+
+#;(define-docs (type-label/union type)
+    [Signature: Type -> [Listof String]]
+    [Purpose: #<<"
+A brief label of the type, or possible subtypes of the type if it's a union.
+"
+              ]
+    [Examples:
+     (type-label/union (λ () (primitive "String"))) => '("String")
+     (type-label/union (λ () (primitive "Nat"))) => '("Nat")
+     (type-label/union [Union/parsed (λ () (primitive "String"))
+                                     (λ () (primitive "Nat"))]) =>
+     '("String" "Nat")])
+(define (type-label/union type)
+  (define type+ (type))
+  (cond
+    [(union? type+) (map type-label (union-subs type+))]
+    [else (list (type-label type))]))
 
 #;(define-docs (show-in-intersection-label? x)
     [Signature: Type -> Boolean]
@@ -447,12 +465,11 @@ ignores intersection sub-types which return false in @sub-filter
      (format "[~a -> ~a]"
              (string-join (map sub-summary (func-params type+)) " ")
              (sub-summary (func-out type+)))]
-    [(list? type+)
-     (format "(~a)"
-             (string-join (map sub-summary type+) " "))]
     [(forall? type+)
      (define eparam (λ () (primitive (format "X~a" eid))))
      (format "{~a} ~a"
              (sub-summary eparam)
              (sub-summary ((forall-get-type type+) eparam)))]
+    [(list? type+)
+     (format "(~a)" (string-join (map sub-summary type+) " "))]
     [else (format "~a" type+)]))

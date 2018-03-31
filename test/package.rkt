@@ -1,6 +1,4 @@
-#lang racket
-
-(require "../lib/racket-docs/main.rkt")
+#lang racket-docs
 
 (define-data String/False
   [: - String
@@ -54,9 +52,6 @@
   (define phase1-val 5)
   
   (displayln "Hello"))
-
-(begin-for-syntax
-  (compile-docs (get-all-docs) "pkg.scrbl"))
 
 (+int 5 7)
 (begin-without-type-checking

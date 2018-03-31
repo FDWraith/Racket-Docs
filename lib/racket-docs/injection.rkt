@@ -13,6 +13,6 @@
   (unless (no-docs?)
     (displayln "Compiling docs ...")
     
-    (compile-docs)
+    (compile-docs (get-all-docs))
     
     (stop "Successfully compiled docs.")))

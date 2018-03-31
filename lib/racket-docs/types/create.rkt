@@ -1,6 +1,7 @@
 #lang racket
 
 (provide define-type
+         define-type/parsed
          define-type/primitive
          define-type/parsed+un
          define-type/syntax)
@@ -31,9 +32,31 @@ characters) and replaces them in defn to get a result.
   (syntax-parse stx
     [(_ defd:id defn)
      #:with defn+ (parse-type #'defn)
-     #'(define-type/parsed+un defd (defn+))]
+     #'(define-type/parsed defd defn+)]
     [(_ (defd:id param:id ...) defn)
      #:with defn+ (parse-type #'defn)
+     #'(define-type/parsed (defd param ...) defn+)]))
+
+#;(define-docs define-type/parsed
+    [Syntax: (define-type/parsed defd:id defn)]
+    [Semantics: #<<"
+Assumes defn is already parsed, but not unwrapped.
+Creates a new type, defd, which is equivalent to defn - whenever an instance of
+defn is expected, an instance of defd can be provided, and vice versa.
+If defd is a list, it creates a function type which takes the given parameters
+(which MUST be valid type identifiers - they can't start with lowercase
+characters) and replaces them in defn to get a result.
+"
+                ]
+    [Examples:
+     (define-type/parsed Integer Int)
+     (define-type/parsed Int [Union Pos 0 (- Pos)])
+     (define-type/parsed Empty-List (λ () '()))])
+(define-syntax (define-type/parsed stx)
+  (syntax-parse stx
+    [(_ defd:id defn)
+     #'(define-type/parsed+un defd (defn))]
+    [(_ (defd:id param:id ...) defn)
      (define bad-param-stx
        (findf (compose not type-identifier?) (syntax->list #'(param ...))))
      (when bad-param-stx
@@ -41,7 +64,7 @@ characters) and replaces them in defn to get a result.
                            "Param must be valid type identifier"
                            stx
                            bad-param-stx))
-     #'(define-type/parsed+un (defd param ...) (defn+))]))
+     #'(define-type/parsed+un (defd param ...) (defn))]))
 
 #;(define-docs define-type/primitive
     [Syntax: (define-type/primitive defd:id)]
@@ -61,7 +84,7 @@ characters) and replaces them in defn to get a result.
        defn ...)
      (define-type/parsed+un (defd:id param:id ... . rest:id) defn ...)]
     [Semantics: #<<"
-Assumes defn is already parsed - e.g. it can be a primitive type.
+Assumes defn is already parsed and unwrapped - e.g. it can be a primitive type.
 Creates a new type, defd, which is equivalent to defn - whenever an instance of
 defn is expected, an instance of defd can be provided, and vice versa.
 If defd is a list, it creates a function type which takes the given parameters

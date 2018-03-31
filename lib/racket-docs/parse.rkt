@@ -171,7 +171,7 @@ If documenting a function, also assignes the documented type.
                   extra-props+))]))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
      #`(begin
-         (assign-type/id head.id #,sig+)
+         (assign-type/id/parsed head.id #,sig+)
          #,(tests-for-props extra-props+))]
     [(_ id:id
         [Syntax: stx-case ...]
@@ -212,7 +212,7 @@ If documenting a function, also assignes the documented type.
                extra-props+)))
      (add-doc! entry 'define-data stx #'(extra-prop ...))
      #`(begin
-         (define-type id #,type+) ; Long-Term TODO: Add type constructors
+         (define-type/parsed id #,type+) ; Long-Term TODO: Add type constructors
          #,(tests-for-props extra-props+))]))
 
 #;(define-docs define-syntax/docs

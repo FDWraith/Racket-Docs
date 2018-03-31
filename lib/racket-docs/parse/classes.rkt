@@ -21,18 +21,21 @@
 
 (define-splicing-parse-class union-type
   #:datum-literals (-)
-  [(~seq (~seq - ~! sub-type:type) ...+)
+  [(~seq (~seq - ~! sub-type:unparsed-type) ...+)
    #`[Union #,@(parse-classes (sub-type ...))]]
   [x:type (parse-class x)])
 
 (define-splicing-parse-class type
+  [x:unparsed-type (parse-type #'x.out)])
+
+(define-splicing-parse-class unparsed-type
   #:datum-literals (All ->)
-  [(~seq {All x:id} ~! f:type)
+  [(~seq {All x:id} ~! f:unparsed-type)
    #'[Forall x f.out]]
-  [(~seq {All x:id y:id ...} ~! f:type)
+  [(~seq {All x:id y:id ...} ~! f:unparsed-type)
    #:with f+:non-inline-type #'[{All y ...} f]
    #'[Forall x f+.out]]
-  [(~seq i:non-inline-type ... -> o:type)
+  [(~seq i:non-inline-type ... -> o:unparsed-type)
    #'[-> i.out ... o.out]]
   [(~seq i:non-inline-type ... -> o:non-inline-type ...)
    #'[-> i.out ... (values o.out ...)]]
