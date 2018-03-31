@@ -1,27 +1,33 @@
 #lang racket
 
-(provide typed-module-begin
+(provide typed-top
          typed-datum
          typed-app
+         typed-define
          begin-without-type-checking)
 
-(require [for-syntax "builtin-instances.rkt"
-                     "error.rkt"
+(require [for-syntax "error.rkt"
                      "subtype.rkt"
                      "struct.rkt"
                      "../utils.rkt"
                      syntax/parse
-                     racket/function]
+                     racket/function
+                     racket/list]
          "use.rkt"
          "builtin.rkt")
 
-#;(define-docs typed-module-begin
-    [Syntax: (typed-module-begin x ...)]
-    [Semantics: "Adds builtin instance types to the module."])
-(define-syntax typed-module-begin
+#;(define-docs typed-top
+    )
+(define-syntax typed-top
   (syntax-parser
-    [(_ x ...)
-     #`(#%module-begin #,(add-builtin-instances this-syntax) x ...)]))
+    [(_ . x)
+     (cond
+       [(allow-unbound? #'x)
+        (define type
+          (λ () (or (try-get-id-type #'x)
+                    (union '()))))
+        (assign-type/stx/parsed #'(void) type)]
+       [else #'(#%top . x)])]))
 
 #;(define-docs typed-datum
     [Syntax: (typed-datum . x)]
@@ -86,12 +92,73 @@ function's type.
      "Raises a syntax error describing the function application error."])
 (define-for-syntax (raise-app-error err f-stx x-stxs full-stx)
   (define f-datum (syntax-e f-stx))
-  (apply raise-syntax-error
-         (and (symbol? f-datum) f-datum)
-         (app-error-msg err)
-         full-stx
-         (map (curry list-ref x-stxs)
-              (app-error-param-idxs err))))
+  (define sub-stxs (remove-duplicates (map (curry list-ref x-stxs)
+                                           (app-error-param-idxs err))))
+  (raise-syntax-error (and (symbol? f-datum) f-datum)
+                      (app-error-msg err)
+                      full-stx
+                      (and (cons? sub-stxs) (first sub-stxs))
+                      (and (cons? sub-stxs) (rest sub-stxs))))
+
+#;(define-docs typed-define
+    [Syntax:
+     (typed-define defd:id body ...+)
+     (typed-define (defd:id prm:id ...) body ...+)]
+    [Semantics: #<<"
+If defining a function and the function's identifier has a type,
+gives its parameters types and typechecks the output.
+"
+                ])
+(define-syntax typed-define
+  (syntax-parser
+    [(_ defd:id body ...+)
+     #'(define defd body ...)]
+    [(_ (defd:id prm:id ...) body ...+)
+     #'(define defd (typed-named-λ defd (prm ...) body ...))]))
+
+#;(define-docs typed-named-λ
+    [Syntax: (typed-named-λ fid:id (prm:id ...) body ... out)]
+    [Semantics: #<<"
+Based on the type of the function's identifier @fid,
+assigns types to the arguments,
+and raises a syntax error if the body doesn't conform to the output.
+"
+                ])
+(define-syntax typed-named-λ
+  (syntax-parser
+    [(_ fid:id (prm:id ...) body ... out)
+     (define-values (_ type) (type-of #'fid))
+     (define param-types (try-func-params type))
+     (define out-type (try-func-out type))
+     (when param-types
+       (for [(param-stx (syntax->list #'(prm ...)))
+             (param-type param-types)]
+         (add-id-type! param-stx param-type))
+       ; Raises type errors (output type errors raised in (when out-type ...))
+       (for-each type-of (syntax->list (allow-unbound #'(body ...)))))
+     (when out-type
+       (define-values (_ actual-out-type) (type-of (allow-unbound #'out)))
+       (unless (type<? actual-out-type out-type)
+         (raise-out-error (get-type-error actual-out-type out-type)
+                          #'fid
+                          #'out
+                          this-syntax)))
+     #'(λ (prm ...)
+         body ...
+         out)]))
+
+#;(define-docs (raise-out-error err f-stx out-stx full-stx)
+    [Signature: TypeError Syntax Syntax Syntax -> Syntax]
+    [Purpose:
+     "Raises a syntax error describing the function application error."])
+(define-for-syntax (raise-out-error err f-stx out-stx full-stx)
+  (define f-datum (syntax-e f-stx))
+  (raise-syntax-error f-datum
+                      (string-append
+                       "Function output has the wrong type:\n"
+                       (type-error-msg err))
+                      full-stx
+                      out-stx))
 
 #;(define-docs (begin-without-type-checking)
     [Syntax: (begin-without-type-checking expr ...)]
@@ -112,10 +179,19 @@ types won't cause a type error.
       [Signature: Symbol]
       [Purpose: #<<"
 A syntax property key which, if true,
-prevents the syntax from being type-checked."
+prevents the syntax from being type-checked.
 "
                 ])
   (define skip-type-check?-prop 'skip-type-check?)
+
+  #;(define-docs allow-unbound?-prop
+      [Signature: Symbol]
+      [Purpose: #<<"
+A syntax property key which, if true,
+prevents unbound identifiers from automatically raising errors.
+"
+                ])
+  (define allow-unbound?-prop 'allow-unbound?)
 
   #;(define-docs (skip-type-check? stx)
       [Signature: Syntax -> Bool]
@@ -130,4 +206,22 @@ Returns a syntax identical to @stx, but it won't be type checked.
 "
                 ])
   (define (skip-type-check stx)
-    (syntax-property/recur stx skip-type-check?-prop #true)))
+    (syntax-property/recur stx skip-type-check?-prop #true))
+
+  #;(define-docs (allow-unbound? stx)
+      [Signature: Syntax -> Bool]
+      [Purpose: #<<"
+Allow unbound identifiers (e.g. when getting function output types)?
+"
+                ])
+  (define (allow-unbound? stx)
+    (syntax-property stx allow-unbound?-prop))
+
+  #;(define-docs (allow-unbound stx)
+      [Signature: Syntax -> Syntax]
+      [Purpose: #<<"
+Returns a syntax identical to @stx, but unbound identifiers won't raise errors.
+"
+                ])
+  (define (allow-unbound stx)
+    (syntax-property/recur stx allow-unbound?-prop #true)))

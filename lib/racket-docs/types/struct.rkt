@@ -10,12 +10,17 @@
          Union/parsed
          ->/parsed
          Forall/parsed
+         Nothing/parsed
+         Any/parsed
          expr?
+         try-func-params
          try-func-out
          unparameterize
          app-forall
          type-summary
          type-label)
+
+(require "../utils/gen.rkt")
 
 #;(define-data Type
   [: - (labeled-type [-> UnwrappedType] String)
@@ -133,9 +138,14 @@ before ... is used. Prevents unnecessary or infinite recursion.
               ])
 (define summary-recur-limit 10)
 
+#;(define-docs subtype-count-limit
+    [Signature: Nat]
+    [Purpose: "How many parts of a type will be tried as parameters."])
+(define subtype-count-limit 5)
+
 #;(define-docs (Intersection/parsed xs)
     [Signature: Type -> Type]
-    [Semantics: #<<"
+    [Purpose: #<<"
 Creates an intersection type, with the given parameters as sub-types.
 A value belongs to this type if it belongs to all of the sub-types.
 Unlike regular Intersection, doesn't parse the given types.
@@ -148,7 +158,7 @@ Unlike regular Intersection, doesn't parse the given types.
 
 #;(define-docs (Union/parsed xs)
     [Signature: Type -> Type]
-    [Semantics: #<<"
+    [Purpose: #<<"
 Creates a union type, with the given parameters as sub-types.
 A value belongs to this type if it belongs to any of the sub-types.
 Unlike regular Union, doesn't parse the given types.
@@ -161,7 +171,7 @@ Unlike regular Union, doesn't parse the given types.
 
 #;(define-docs (->/parsed params out)
     [Signature: [Listof Type] Type -> Type]
-    [Semantics: #<<"
+    [Purpose: #<<"
 Creates a function type, with the types in the first parameter as
 param types, and the second parameter as the output type.
 Unlike regular ->, doesn't parse the given types.
@@ -174,7 +184,7 @@ Unlike regular ->, doesn't parse the given types.
 
 #;(define-docs (Forall/parsed params out)
     [Signature: [Type -> Type] -> Type]
-    [Semantics: #<<"
+    [Purpose: #<<"
 Creates a parameterized type.
 The function @f computes the type given the type parameter.
 "
@@ -183,6 +193,16 @@ The function @f computes the type given the type parameter.
      (Forall/parsed (λ (X) X)) => (λ () (forall (λ (X) X)))])
 (define (Forall/parsed f)
   (λ () (forall f)))
+
+#;(define-docs Nothing/parsed
+    [Signature: Type]
+    [Purpose: "This is a subtype of all other types."])
+(define Nothing/parsed (Union/parsed '()))
+
+#;(define-docs Any/Parsed
+    [Signature: Type]
+    [Purpose: "All other types are a subtype of this."])
+(define Any/parsed (Intersection/parsed '()))
 
 #;(define-docs (expr? x)
     [Signature: Type -> Bool]
@@ -198,6 +218,37 @@ The function @f computes the type given the type parameter.
            (func? x)
            (forall? x))))
 
+#;(define-docs (try-func-params x)
+    [Signature: Type -> [Maybe [Listof Type]]]
+    [Purpose: #<<"
+@f's parameters if it includes a function type, otherwise #false.
+Assumes parameters are as generic as possible -
+assumes forall type variables are all Nothing,
+intersection/union types yield intersection/union parameters,
+and the # of parameters is the # of parameters in the smallest function.
+"
+              ]
+    [Examples:
+     (try-func-params (->/parsed (list Int Nat) String)) => (list Int Nat)
+     (try-func-params
+      (Intersection/parsed (list (->/parsed (list Int) String)
+                                 (->/parsed (list String) Bool)))) =>
+     (Intersection/parsed (list Int String))
+     (try-func-params String) => Any])
+(define (try-func-params x)
+  (define (try-sub-params mk-sub-unwrapped xs)
+    (map mk-sub-unwrapped (transpose (filter-map try-func-params xs))))
+  (define x+ (x))
+  (cond
+    [(func? x+) (func-params x+)]
+    [(intersection? x+)
+     (try-sub-params intersection (intersection-subs x+))]
+    [(union? x+)
+     (try-sub-params union (union-subs x+))]
+    [(forall? x+)
+     (try-func-params ((forall-get-type x+) Nothing/parsed))]
+    [else #false]))
+
 #;(define-docs (try-func-out x)
     [Signature: Type -> [Maybe Type]]
     [Purpose: #<<"
@@ -207,7 +258,7 @@ returns #false for forall types.
 "
               ]
     [Examples:
-     (try-func-out (func (list Int Nat) String)) => String
+     (try-func-out (->/parsed (list Int Nat) String)) => String
      (try-func-out String) => Any])
 (define (try-func-out x)
   (define x+ (x))
@@ -265,11 +316,40 @@ to yield types which can then be related with @xs.
 "
               ])
 (define (find-parameters xs)
-  (list* (λ () (union '())) ; Nothing
-         (λ () (intersection '())) ; Any
-         (λ () (union xs))
-         (λ () (intersection xs))
-         xs))
+  (define all-xs (append-map find-parts xs))
+  (list* Nothing/parsed
+         Any/parsed
+         (Union/parsed all-xs)
+         (Intersection/parsed all-xs)
+         all-xs))
+
+#;(define-docs (find-parts x)
+    [Signature: Type -> [Listof Type]]
+    [Purpose: #<<"
+Finds types in @x if @x is a list.
+These could be used as parameters to make a forall type match @x.
+"
+              ])
+(define (find-parts x)
+  (define (find-parts/acc x count)
+    (cons x (find-proper-parts/acc x count)))
+  (define (find-proper-parts/acc x count)
+    (define (find-proper-parts* x*)
+      (find-proper-parts/acc x* count))
+    (define (part-find-parts part)
+      (find-parts/acc part (add1 count)))
+    (define x+ (x))
+    (cond
+      [(>= count subtype-count-limit) '()]
+      [(intersection? x+)
+       (append-map find-proper-parts* (intersection-subs x+))]
+      [(union? x+)
+       (append-map find-proper-parts* (union-subs x+))]
+      [(forall? x+)
+       (find-proper-parts* ((forall-get-type x+) Nothing/parsed))]
+      [(list? x+) (append-map part-find-parts x+)]
+      [else '()]))
+  (find-proper-parts/acc x 0))
 
 #;(define-docs (type-summary type)
     [Signature: Type -> String]
@@ -301,9 +381,28 @@ to yield types which can then be related with @xs.
       [(zero? recurs-left) "..."]
       [else (type-summary/recur type
                                 (- summary-recur-limit recurs-left)
-                                (λ (x) (not (expr? (x))))
+                                show-in-intersection-label?
                                 (curryr type-label/acc (sub1 recurs-left)))]))
   (type-label/acc type summary-recur-limit))
+
+#;(define-docs (show-in-intersection-label? x)
+    [Signature: Type -> Boolean]
+    [Purpose: #<<"
+Whether this type should be shown in a type label,
+if it's in an intersection with other types.
+"
+              ])
+(define (show-in-intersection-label? x)
+  (define x+ (x))
+  (cond
+    [(intersection? x+)
+     (ormap show-in-intersection-label? (intersection-subs x+))]
+    [(union? x+)
+     (andmap show-in-intersection-label? (union-subs x+))]
+    [(expr? x+) #false]
+    [(forall? x+)
+     (show-in-intersection-label? ((forall-get-type x+) Nothing/parsed))]
+    [else #true]))
 
 #;(define-docs (type-summary/recur type eid sub-filter sub-summary)
     [Signature: Type Nat [Type -> Bool] [Type -> String] -> String]
@@ -321,7 +420,13 @@ ignores intersection sub-types which return false in @sub-filter
   (cond
     [(primitive? type+) (primitive-label type+)]
     [(intersection? type+)
-     (define intersection-subs* (filter sub-filter (intersection-subs type+)))
+     (define all-intersection-subs (intersection-subs type+))
+     (define filtered-intersection-subs
+       (filter sub-filter (intersection-subs type+)))
+     (define intersection-subs*
+       (if (empty? filtered-intersection-subs)
+           all-intersection-subs
+           filtered-intersection-subs))
      (cond
        [(empty? intersection-subs*) "Any"]
        [(empty? (rest intersection-subs*))
@@ -349,4 +454,4 @@ ignores intersection sub-types which return false in @sub-filter
      (format "{~a} ~a"
              (sub-summary eparam)
              (sub-summary ((forall-get-type type+) eparam)))]
-    [else (format "~v" type+)]))
+    [else (format "~a" type+)]))

@@ -2,9 +2,13 @@
 
 (provide [for-syntax assign-type/stx
                      assign-type/stx/parsed
-                     type-of]
+                     add-id-type!
+                     type-of
+                     try-get-id-type]
          assign-type/id
-         assign-type/id/parsed)
+         assign-type/id/parsed
+         define-typed-prim
+         define-typed-prim/parsed)
 
 (require [for-syntax [for-syntax "parse.rkt"
                                  syntax/parse
@@ -15,6 +19,7 @@
                      syntax/parse
                      racket/syntax
                      racket/match
+                     racket/string
                      racket/list]
          "builtin.rkt"
          "struct.rkt")
@@ -57,6 +62,14 @@ the compiler will raise an error.
        (assign-type/stx/parsed #'7 [Union Pos 0 (- Pos)])])
   (define assign-type/stx/parsed mt.assign-type)
 
+  #;(define-docs (add-id-type! id type)
+      [Signature: Identifier Type -> Void]
+      [Purpose: "Assigns the type to the identifier via cur-id-types."]
+      [Examples: (add-id-type! #'foo String)]
+      [Effect: "Adds an entry to cur-id-types."])
+  (define (add-id-type! id type)
+    (set! cur-id-types (cons (cons id type) cur-id-types)))
+
   #;(define-docs type-of
       [Signature: Syntax -> Syntax Type]
       [Purpose: #<<"
@@ -93,6 +106,7 @@ because it should have a literal type assigned if it would be used.
   (define (shape-type-of stx)
     (define x (syntax-e stx))
     (cond
+      [(identifier? stx) (λ () (identifier-binding-symbol stx))]
       [(cons? x)
        (if (equal? (syntax-e (car x)) 'quote)
            ; "Over-expanded" datum - e.g. 7 gets expanded into '7.
@@ -132,15 +146,7 @@ if the identifier is specifically defined to refer to the value.
                 ]
       [Examples: (try-get-id-type #'foo)])
   (define (try-get-id-type id)
-    (map/maybe cdr (assoc id cur-id-types free-identifier=?)))
-
-  #;(define-docs (add-id-type id type)
-      [Signature: Identifier Type -> Void]
-      [Purpose: "Assigned the type to the identifier via cur-id-types."]
-      [Examples: (add-id-type #'foo String)]
-      [Effect: "Adds an entry to cur-id-types."])
-  (define (add-id-type id type)
-    (set! cur-id-types (cons (cons id type) cur-id-types))))
+    (map/maybe cdr (assoc id cur-id-types free-identifier=?))))
 
 #;(define-docs assign-type/id
     [Syntax: (assign-type/id val:id type)]
@@ -176,4 +182,45 @@ the compiler will raise an error.
   (syntax-parser
     [(_ val:id type)
      #'(begin-for-syntax
-         (add-id-type #'val type))]))
+         (add-id-type! #'val type))]))
+
+
+#;(define-docs define-typed-prim
+    [Syntax:
+     (define-typed-prim defd:id type)
+     (define-typed-prim defd:id defn type)]
+    [Semantics: #<<"
+Defines @defd to a syntax transformer which expands to @defn with @type.
+If @defn isn't provided (there are only 2 terms), it's inferred to be @un:defd
+in @defd's scope.
+"
+                ]
+    [Examples:
+     (define-typed-prim cons+ cons [Forall X [-> X [Listof X] [Listof X]]])
+     (define-typed-prim 7+ 7 7)])
+(define-syntax define-typed-prim
+  (syntax-parser
+    [(_ defd:id defn type)
+     #:with type+ (parse-type #'type)
+     #'(define-typed-prim/parsed defd defn type+)]
+    [(_ defd:id type)
+     #:with defn (format-id #'defd "un.~a" #'defd #:source #'defd)
+     #:with type+ (parse-type #'type)
+     #'(define-typed-prim/parsed defd defn type+)]))
+
+#;(define-docs define-typed-prim/parsed
+    [Syntax: (define-typed-prim/parsed defd:id defn type)]
+    [Semantics: #<<"
+Assumes type is already parsed - e.g. it can be a primitive type.
+Defines @defd to a syntax transformer which expands to @defn with @type.
+"
+                ]
+    [Examples:
+     (define-typed-prim/parsed cons+ cons
+       [Forall X [-> X [Listof X] [Listof X]]])
+     (define-typed-prim/parsed 7+ 7 (λ () 7))])
+(define-syntax define-typed-prim/parsed
+  (syntax-parser
+    [(_ defd:id defn type)
+     #:with defn+ #'(assign-type/stx/parsed #'defn type)
+     #'(define-syntax defd (mk-applied-id-macro defn+))]))

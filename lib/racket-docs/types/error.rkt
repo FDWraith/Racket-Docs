@@ -211,8 +211,10 @@ returns an error indicating this.
           (list (list intersection no-overloads)
                 (list post-intersection post-no-overloads) ...)]
          (splitf-at (map list fs errs) (compose not no-overloads? second)))
-       (match-define (list (bad-overload intersection-subs overload-errs) ...)
+       (match-define
+         (list (bad-overload intersection-subs overload-types-errs) ...)
          (no-overloads-sub-errs no-overloads))
+       (define overload-errs (map bad-params overload-types-errs))
        (try-rough-overload-error
         (append pre-intersection intersection-subs post-intersection)
         (append pre-no-overloads overload-errs post-no-overloads))]
@@ -221,7 +223,8 @@ returns an error indicating this.
                           (map (curryr list-update 1 bad-params-err)
                                (filter (compose bad-params? second)
                                        (map list fs errs)))))]
-      [else (not-func f)])) ; All errors are not-func, this isn't a function
+      [(cons? errs) (not-func f)] ; All errors are not-func, this isn't a func
+      [else #false]))
   (try-rough-overload-error fs (map (curry get-app-error xs) fs)))
 
 #;(define-docs (get-params-error xs ys)

@@ -44,8 +44,8 @@
   (syntax-parser
     [:id out-stx]
     [nonid ; insert app and recursively call first clause of this macro
-     #:with app (datum->syntax #'nonid '#%app)
-     #'(app . nonid)]))
+     #:with app (datum->syntax #'nonid '#%app #'nonid)
+     (datum->syntax #'(app . nonid) (cons #'app #'nonid) #'nonid)]))
 
 ; Type -> Type
 ; Fixes a syntax property type, since sometimes it gets corrupted.

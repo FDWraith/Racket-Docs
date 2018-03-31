@@ -4,8 +4,10 @@
          pattern-option
          temp-matches
          mk-id-macro
+         mk-applied-id-macro
          map/stx
          flatten/stx
+         add-bindings
          syntax-property/recur
          syntax->string
          extract
@@ -13,7 +15,8 @@
 
 (require [for-syntax syntax/parse]
          syntax/parse
-         "../struct.rkt")
+         "../struct.rkt"
+         "../types/macrotypes/stx-utils.rkt")
 
 ; Matches an option before the cases in syntax-parse, syntax-parser, etc.
 ; Example: #:datum-literals (foo bar baz)
@@ -41,15 +44,11 @@
 ; SYNTAX: (mk-id-macro expr ... stx)
 ; Creates a syntax parser which only recognizes identifiers. When used in a
 ; define-syntax, it will replace what's defined with the given syntax.
-(define-syntax mk-id-macro
-  (syntax-parser
-    [(_ expr ... stx)
-     #'(syntax-parser [_:id expr ... stx])]))
 
-; {X Y} [X -> Y] [Stx [Listof X]] -> [Stx [Listof Y]]
+; {X X2... Y} [X X2... -> Y] [Stx [Listof X]] [Listof X2]... -> [Stx [Listof Y]]
 ; Transforms the list within the syntax.
-(define (map/stx f stx)
-  (datum->syntax stx (map f (syntax->list stx))))
+(define (map/stx f stx . xs)
+  (datum->syntax stx (apply map f (syntax->list stx) xs)))
 
 ; {X} [Stx [Listof [Listof X]]] -> [Stx [Listof X]]
 ; Flattens the list within the syntax.
@@ -57,6 +56,13 @@
   (datum->syntax stx (foldr append '()
                             (map syntax-e
                                  (syntax-e stx)))))
+
+; [Stx [Listof Identifier]] [Stx [Listof Syntax]] -> [Stx [Listof Syntax]]
+; Resolves unbound identifiers in stx using the identifiers from bindings-stx.
+(define (add-bindings bindings-stx stx)
+  (define ctx (syntax-local-make-definition-context))
+  (syntax-local-bind-syntaxes (syntax->list bindings-stx) #f ctx)
+  (local-expand stx 'expression (list #'#%datum #'#%app)))
 
 ; Syntax Symbol Any -> Syntax
 ; Sets the syntax property in the given syntax and any of its children
@@ -81,7 +87,7 @@
      ; Boolean -> String
      ; converts a boolean to a String
      (define (boolean->string b)
-       (if b "#t" "#f"))
+       (if b "#true" "#false"))
      ; Datum -> String
      ; Converts a datum to a String
      (define (stringify exp)

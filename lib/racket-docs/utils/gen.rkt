@@ -3,6 +3,7 @@
 (provide equal-thunk-limit
          map/unzip
          map/maybe
+         transpose
          list->values
          values->list
          thunk?
@@ -33,6 +34,11 @@
   (cond
     [x (f x)]
     [else x]))
+
+(define (transpose xs)
+  (cond
+    [(empty? xs) '()]
+    [(cons? xs) (apply map list xs)]))
 
 (define (list->values xs)
   (apply values xs))

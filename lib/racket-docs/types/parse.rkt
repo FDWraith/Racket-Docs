@@ -25,11 +25,12 @@ Leaves identifiers not starting with lowercase characters as-is
      (parse-type #'[Union A b C]) => #'[Union A (λ () 'b) C]
      (parse-type #'(cons x Y)) => #'(λ () (list (λ () 'cons) (λ () 'x) Y))])
 (define (parse-type stx)
-  (syntax-parse stx
+  (syntax-parse (remove-app (local-expand stx 'expression #false))
     [x:id
+     #:with x+ (datum->syntax #'x (identifier-binding-symbol #'x) #'x #'x)
      (cond
        [(type-identifier? #'x) #'x]
-       [else #'(λ () 'x)])]
+       [else #'(λ () 'x+)])]
     [((~datum quote) x) #'(λ () 'x)]
     [(head param ...)
      #:with head+ (parse-type #'head)
@@ -38,6 +39,17 @@ Leaves identifiers not starting with lowercase characters as-is
        [(expr-stx? #'head) #'(λ () (list head+ param+ ...))]
        [else #'(head+ param+ ...)])]
     [x #'(λ () x)])) ; Numbers, booleans, etc. All expression types.
+
+#;(define-docs (remove-app stx)
+    [Signature: Syntax -> Syntax]
+    [Purpose: "Removes #%app in the head of the syntax, if it was added."]
+    [Examples:
+     (remove-app #'(x y)) => #'(x y)
+     (remove-app #'(#%app x y)) => #'(x y)])
+(define (remove-app stx)
+  (syntax-parse stx
+    [((~datum #%app) x ...) #'(x ...)]
+    [x #'x]))
 
 #;(define-docs (type-identifier? id-stx)
     [Signature: Identifier -> Bool]
