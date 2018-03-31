@@ -17,7 +17,7 @@
   [pattern id:id
            #:attr args #false]
   [pattern (id:id arg:id ...)
-           #:attr args #'(arg ...)])
+           #:attr args #'(list arg ...)])
 
 (define-splicing-parse-class union-type
   #:datum-literals (-)

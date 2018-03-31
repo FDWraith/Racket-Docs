@@ -18,6 +18,7 @@
                      define-data
                      define-syntax/docs
                      compile-docs
+                     get-all-docs
                      no-docs?]
          define-docs
          define-data

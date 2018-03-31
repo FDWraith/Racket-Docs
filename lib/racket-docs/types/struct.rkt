@@ -18,7 +18,8 @@
          unparameterize
          app-forall
          type-summary
-         type-label)
+         type-label
+         type-label/basic)
 
 (require "../utils/gen.rkt")
 

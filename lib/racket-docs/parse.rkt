@@ -21,6 +21,7 @@
                      "parse/errors.rkt"
                      "struct.rkt"
                      "utils.rkt"
+                     "types.rkt"
                      syntax/parse]
          "types.rkt")
 
@@ -58,11 +59,20 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
        #:with run-tests (tests-for-props (parse-classes (extra-prop ...)))
        #`(begin
            (define entry
-             (val-doc-entry #'head.id
-                            (list (args-doc-prop (attribute head.args))
-                                  (sig-doc-prop sig.out)
-                                  (purpose-doc-prop purpose.out1)
-                                  extra-prop.out1 ...)))
+             (cond
+               [(boolean? (attribute head.args))
+                (const-doc-entry
+                 #'head.id
+                 (list* (sig-doc-prop/stx #'sig.out1)
+                        (purpose-doc-prop purpose.out1)
+                        extra-prop.out1 ...))]
+               [else
+                (func-doc-entry
+                 #'head.id
+                 (list* (args-doc-prop (attribute head.args))
+                        (sig-doc-prop/stx #'sig.out1)
+                        (purpose-doc-prop purpose.out1)
+                        extra-prop.out1 ...))]))
            (add-doc! entry 'define-docs stx #'(extra-prop ...))
            run-tests)]
       [(_ id:id
@@ -130,8 +140,8 @@ in the order they were defined in the file.
      [Semantics: semantics:raw-text]
      extra-prop:extra-doc-prop ...)]
   [Semantics: #<<"
-Documents a value or macro.
-If documenting a value, also assignes the documented type.
+Documents a function, constant or macro.
+If documenting a function, also assignes the documented type.
 "
               ])
 (define-syntax (define-docs stx)
@@ -142,13 +152,23 @@ If documenting a value, also assignes the documented type.
         [Purpose: purpose:raw-text]
         extra-prop:extra-doc-prop ...)
      (define sig+ (parse-class sig))
+     #;(println sig+)
      (define extra-props+ (parse-classes (extra-prop ...)))
      (define entry
-       (val-doc-entry #'head.id
-                      (list* (args-doc-prop (attribute head.args))
-                             (sig-doc-prop/stx sig+)
-                             (purpose-doc-prop (parse-class purpose))
-                             extra-props+)))
+       (cond
+         [(boolean? (attribute head.args))
+          (const-doc-entry
+           #'head.id
+           (list* (sig-doc-prop/stx sig+)
+                  (purpose-doc-prop (parse-class purpose))
+                  extra-props+))]
+         [else
+          (func-doc-entry
+           #'head.id
+           (list* (args-doc-prop (attribute head.args))
+                  (sig-doc-prop/stx sig+)
+                  (purpose-doc-prop (parse-class purpose))
+                  extra-props+))]))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
      #`(begin
          (assign-type/id head.id #,sig+)
@@ -180,7 +200,9 @@ If documenting a value, also assignes the documented type.
         [: type:union-type]
         [Interpretation: interpretation:raw-text]
         extra-prop:extra-data-doc-prop ...)
+     #;(println #'type)
      (define type+ (parse-class type))
+     #;(println type+)
      (define extra-props+ (parse-classes (extra-prop ...)))
      (define entry
        (type-doc-entry

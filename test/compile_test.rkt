@@ -7,13 +7,20 @@
      - String]
   [Interpretation: "What in the world"])
 
-(define-docs hello
+(define-docs (hello o)
   [Signature: Hello -> Bool]
   [Purpose: "Returns a lot of annoying things"])
 (define (hello o)
   #f)
 
 (define-data What
-  [: Int]
+  [: Int -> Bool]
   [Interpretation: "Huh"])
 
+(define-docs WORLD_STATE
+  [Signature: Nat]
+  [Purpose: "Describes the state of the world"])
+(define WORLD_STATE 20)
+
+(begin-for-syntax
+  (compile-docs (get-all-docs)))
