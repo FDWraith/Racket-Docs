@@ -10,7 +10,10 @@ racket-docs
 (require racket/draw
          racket/class
          racket/match
-         racket/port)
+         racket/port
+         racket/path
+         racket/function
+         racket/string)
 
 (define compile-docs-icon-path
   (collection-file-path "resources/icon16.png" "racket-docs"))
@@ -23,9 +26,17 @@ racket-docs
 (define (compile-docs ide)
   (define definitions-text (send ide get-definitions-text))
   (define text (send definitions-text get-text))
-  (define text-port-name (send definitions-text get-port-name))
-  (define reg-text-port (open-input-string text text-port-name))
-  (define injection-port (open-input-file docs-injection-path))
+  (define source-path (send definitions-text get-port-name))
+  (define source-name
+    (path->string (file-name-from-path (path-replace-extension source-path
+                                                               ""))))
+  (define reg-text-port (open-input-string text source-path))
+  (define gen-injection-port (open-input-file docs-injection-path))
+  (define gen-injection-string (port->string gen-injection-port))
+  (define injection-string
+    (string-replace gen-injection-string "#$source-name#$" source-name))
+  (define injection-port
+    (open-input-string injection-string docs-injection-path))
   (read-line injection-port) ; Gets rid of #lang, used for syntax checking.
   (define text-port (input-port-append #true reg-text-port injection-port))
   (port-count-lines! text-port)

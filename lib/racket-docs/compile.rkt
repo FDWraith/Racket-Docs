@@ -1,11 +1,15 @@
 #lang racket
 
-(require ;[prefix-in html. "compile/html.rkt"]
-         [prefix-in scribble. "compile/scribble.rkt"])
+(require [prefix-in scribble->html. "compile/scribble-to-html.rkt"]
+         [prefix-in struct->scribble. "compile/struct-to-scribble.rkt"])
 
 (provide compile-docs)
 
 ; Effect: Generates a folder with the documentation
-(define (compile-docs docs [path "temp"])
-  (scribble.compile-docs docs path)
-  #;(html.compile-docs path #:delete #true))
+(define (compile-docs docs [name "temp"])
+  (displayln "Compiling scribble ...")
+  (struct->scribble.compile-docs docs name)
+  (displayln "Compiled scribble.")
+  (displayln "Compiling html ...")
+  (scribble->html.compile-docs name #:delete #true)
+  (displayln "Compiled html."))

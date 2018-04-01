@@ -8,24 +8,43 @@
 (provide compile-docs)
 
 ; Effect: Generates a Scribble File from the documentation
-(define (compile-docs docs [path "temp.scrbl"])
+(define (compile-docs docs [name "temp"])
+  (define path (string-append name ".scrbl"))
   (define (mk-ent-type? type)
     (λ (ent) (symbol=? (doc-entry-type ent) type)))
   (define (mk-ent-string type)
     (string-join (map compile-doc-entry (filter (mk-ent-type? type) docs))
                  "\n"))
+  (define section-tags
+    (list "datadef"
+          "constdef"
+          "funcdef"
+          "macrodef"))
+  (define section-labels
+    (list "Data Definitions"
+          "Constant Definitions"
+          "Function Definitions"
+          "Macro Definitions"))
+  (define section-types
+    (list 'type 'const 'func 'macro))
   (define out-sections
-    (map (λ (section type)
-           (string-append section "\n" (mk-ent-string type)))
-         (list "@section{Data Definitions}"
-               "@section{Constant Definitions}"
-               "@section{Function Definitions}"
-               "@section{Macro Definitions}")
-         (list 'type 'func 'const 'macro)))
+    (map (λ (tag label type)
+           (string-append "@section[#:tag \""
+                          tag
+                          "\"]{"
+                          label
+                          "}\n"
+                          (mk-ent-string type)))
+         section-tags
+         section-labels
+         section-types))
   (define out-string (string-join out-sections "\n"))
   (define out (open-output-file path #:exists 'truncate))
   (display "#lang scribble/manual\n\n" out)
-  (display "@title{Racket Docs}\n\n" out)
+  (fprintf out "@title{~a Documentation}\n" (string-titlecase name))
+  (for ([tag section-tags])
+    (fprintf out "@secref{~a}\n\n" tag))
+  (display "\n" out)
   (display out-string out)
   (close-output-port out))
 
@@ -44,13 +63,33 @@
   (define props (doc-entry-props dat))
   (define type-prop (extract (mk-prop? 'type) props))
   (define type (doc-prop-value type-prop))
-  (define type-string (string-append "(code:line " (string-join (type-label/union type) " ") ")\n"))
+  (define type-string (format "(code:line ~a)" (string-join (type-label/union type) "\n")))
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define desc (doc-prop-value desc-prop))
   (define example-prop (extract (mk-prop? 'examples) props))
-  (string-append "@defthing[#:kind \"Data Defintion\" " dat-type " " dat-type"? "  
-                 "#:value " type-string "]{\n"
-                 desc "\n}\n"))
+  (string-append "@defthing[#:kind \"data defintion\" #:link-target? #f "
+                 dat-type
+                 " Type #:value "
+                 type-string
+                 "]{\n"
+                 desc
+                 "\n}\n"))
+
+; Compiles Identifiers to valid Scribble line(s)
+(define (compile-doc-const ent)
+  (define name (syntax->string (doc-entry-id ent)))
+  (define props (doc-entry-props ent))
+  (define desc-prop (extract (mk-prop? 'desc) props))
+  (define type-prop (extract (mk-prop? 'type) props))
+  (define type (type-label (doc-prop-value type-prop)))
+  (define desc (doc-prop-value desc-prop))
+  (string-append "@defthing[#:kind \"constant\" #:link-target? #f "
+                 name
+                 " "
+                 type
+                 "]{\n"
+                 desc
+                 "\n}\n"))
 
 ; Compiles Functions to valid Scribble line(s)
 (define (compile-doc-func ent)
@@ -75,17 +114,7 @@
         "???"))
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define purp (doc-prop-value desc-prop))
-  (string-append "@defproc[(" name " " args-string ") " output "]{\n" purp "\n}\n"))
-
-; Compiles Identifiers to valid Scribble line(s)
-(define (compile-doc-const ent)
-  (define name (syntax->string (doc-entry-id ent)))
-  (define props (doc-entry-props ent))
-  (define desc-prop (extract (mk-prop? 'desc) props))
-  (define type-prop (extract (mk-prop? 'type) props))
-  (define type (type-label (doc-prop-value type-prop)))
-  (define desc (doc-prop-value desc-prop))
-  (string-append "@defthing[#:kind \"Constant\" " name " " type "]{\n" desc "\n}\n"))
+  (string-append "@defproc[#:link-target? #f (" name " " args-string ") " output "]{\n" purp "\n}\n"))
 
 ; Compiles Macros to valid Scribble line(s)
 (define (compile-doc-macro ent)
