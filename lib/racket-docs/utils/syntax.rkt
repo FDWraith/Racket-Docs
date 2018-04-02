@@ -11,12 +11,10 @@
          syntax-property/recur
          identifier->stx-string
          syntax->string
-         extract
-         mk-prop?)
+         extract)
 
 (require [for-syntax syntax/parse]
          syntax/parse
-         "../struct.rkt"
          "../types/macrotypes/stx-utils.rkt")
 
 ; Matches an option before the cases in syntax-parse, syntax-parser, etc.
@@ -113,11 +111,6 @@
                                         (syntax->list stx))
                                    " ")
                       ")")])))
-
-; Creates a function that determines if a given DocProp
-; matches that type
-(define (mk-prop? type)
-  (λ (prop) (prop-type=? type (doc-prop-type prop))))
 
 ; Returns the first element in the list that matches pred
 ; Returns an empty list if no such element is found

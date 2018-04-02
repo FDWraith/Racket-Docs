@@ -13,119 +13,124 @@
          Nothing/parsed
          Any/parsed
          expr?
+         expr-func?
          try-func-params
          try-func-out
          unparameterize
-         app-forall)
+         unparameterize/found
+         app-forall
+         app-forall/found
+         find-parameters
+         fill-forall)
 
 (require "../utils/gen.rkt")
 
 #;(define-data Type
-  [: - (labeled-type [-> UnwrappedType] String)
-     - -> UnwrappedType]
-  [Interpretation: #<<"
+    [: - (labeled-type [-> UnwrappedType] String Boolean)
+       - -> UnwrappedType]
+    [Interpretation: #<<"
 A type specified in the type system.
 Some values are instances of the type, some aren't.
 Types are wrapped in thunks so they can be recursive,
 e.g. you can create the type LoS = (cons String LoS).
 "
-                   ])
+                     ])
 (struct labeled-type [proc label]
   #:property prop:procedure (struct-field-index proc))
 
 #;(define-data UnwrappedType
-  [: - PrimitiveType
-     - IntersectionType
-     - UnionType
-     - FunctionType
-     - ForallType
-     - ExpressionType]
-  [Interpretation: #<<"
+    [: - PrimitiveType
+       - IntersectionType
+       - UnionType
+       - FunctionType
+       - ForallType
+       - ExpressionType]
+    [Interpretation: #<<"
 A type specified in the type system.
 Some values are instances of the type, some aren't.
 Types are wrapped in thunks so they can be recursive,
 e.g. you can create the type LoS = (cons String LoS).
 This is what you get when you call the thunk.
 "
-                   ])
+                     ])
 
 #;(define-data PrimitiveType
-  [: (primitive String)]
-  [Interpretation: #<<"
+    [: (primitive String)]
+    [Interpretation: #<<"
 A built-in type.
 The primtive's label should always be its identifier,
 e.g. the primitive for Foo would be (primitive "Foo").
 
 Every primitive type is disjoint from every other primitive type.
 "
-                   ]
-  [Examples:
-   (define-type Foo (primitive "Foo"))
-   (define-type String (primitive "String"))])
+                     ]
+    [Examples:
+     (define-type Foo (primitive "Foo"))
+     (define-type String (primitive "String"))])
 (struct primitive [label] #:transparent)
 
 #;(define-data IntersectionType
-  [: (union [Listof Type])]
-  [Interpretation: #<<"
+    [: (union [Listof Type])]
+    [Interpretation: #<<"
 An intersection of types, created by [(~datum Intersection) A:type ...].
 A value is an instance of this type if it's an instance of all sub-types.
 "
-                   ]
-  [Examples:
-   ([Intersection Int Nat]) => (intersection (list Int Nat))
-   "An intersection of the types Int and Nat" <=
-   (intersection (list Int Nat))])
+                     ]
+    [Examples:
+     ([Intersection Int Nat]) => (intersection (list Int Nat))
+     "An intersection of the types Int and Nat" <=
+     (intersection (list Int Nat))])
 (struct intersection [subs] #:transparent)
 
 #;(define-data UnionType
-  [: (union [Listof Type])]
-  [Interpretation: #<<"
+    [: (union [Listof Type])]
+    [Interpretation: #<<"
 A union of types, created by [(~datum Union) A:type ...].
 A value is an instance of this type if it's an instance of any sub-types.
 "
-                   ]
-  [Examples:
-   ([Union Symbol Int String]) => (union (list Symbol Int String))
-   "A union of the types Symbol, Int, and String" <=
-   (union (list Symbol Int String))])
+                     ]
+    [Examples:
+     ([Union Symbol Int String]) => (union (list Symbol Int String))
+     "A union of the types Symbol, Int, and String" <=
+     (union (list Symbol Int String))])
 (struct union [subs] #:transparent)
 
 #;(define-data FunctionType
-  [: (func [Listof Type] Type)]
-  [Interpretation:
-   "A function type, created by [(~datum ->) I:type ... O:type]."]
-  [Examples:
-   ([-> Foo Bar Baz]) => (func (list Foo Bar) Baz)
-   "A function which takes a Foo and Bar, and returns a Baz." <=
-   (func (list Foo Bar) Baz)])
+    [: (func [Listof Type] Type)]
+    [Interpretation:
+     "A function type, created by [(~datum ->) I:type ... O:type]."]
+    [Examples:
+     ([-> Foo Bar Baz]) => (func (list Foo Bar) Baz)
+     "A function which takes a Foo and Bar, and returns a Baz." <=
+     (func (list Foo Bar) Baz)])
 (struct func [params out] #:transparent)
 
 #;(define-data ForallType
-  [: (forall [Type -> Type])]
-  [Interpretation:
-   "A parameterized type, created by calling @get-type with any type."]
-  [Examples:
-   "Takes an instance of any type, returns an instance of the same type." <=
-   (forall (λ (X) (func (list X) X)))])
+    [: (forall [Type -> Type])]
+    [Interpretation:
+     "A parameterized type, created by calling @get-type with any type."]
+    [Examples:
+     "Takes an instance of any type, returns an instance of the same type." <=
+     (forall (λ (X) (func (list X) X)))])
 (struct forall [get-type] #:transparent)
 
 #;(define-data ExpressionType
-  [: - Atom
-     - [Listof Type]]
-  [Interpretation: #<<"
+    [: - Atom
+       - [Listof Type]]
+    [Interpretation: #<<"
 A type defined by an expression.
 A value is an instance iff it matches the shape of the type -
 if all (lowercase) atoms (e.g. cons) are as-is in the value,
 and all types are replaced by instances (see examples).
 "
-                   ]
-  [Examples:
-   "This type has 1 instance - the string \"foo\"" <= (expr "foo")
-   #<<"
+                     ]
+    [Examples:
+     "This type has 1 instance - the string \"foo\"" <= (expr "foo")
+     #<<"
 This would match (cons \"Hello\" \"World\") and (cons \"A\" \"B\"),
 but not (cons \"Z\" 7), (foo \"?\" \"E\"), or 'alskdj.
 "
-             <= (expr `(cons ,String ,String))])
+     <= (expr `(cons ,String ,String))])
 
 #;(define-docs subtype-count-limit
     [Signature: Nat]
@@ -139,7 +144,7 @@ Creates an intersection type, with the given parameters as sub-types.
 A value belongs to this type if it belongs to all of the sub-types.
 Unlike regular Intersection, doesn't parse the given types.
 "
-                ]
+              ]
     [Examples:
      [Intersection String Bool] => (λ () (intersection (list String Bool)))])
 (define (Intersection/parsed xs)
@@ -152,7 +157,7 @@ Creates a union type, with the given parameters as sub-types.
 A value belongs to this type if it belongs to any of the sub-types.
 Unlike regular Union, doesn't parse the given types.
 "
-                ]
+              ]
     [Examples:
      (Union/parsed (list String Bool)) => (λ () (union (list String Bool)))])
 (define (Union/parsed xs)
@@ -165,7 +170,7 @@ Creates a function type, with the types in the first parameter as
 param types, and the second parameter as the output type.
 Unlike regular ->, doesn't parse the given types.
 "
-                ]
+              ]
     [Examples:
      (->/parsed (list String) Bool) => (λ () (func (list String) Bool))])
 (define (->/parsed params out)
@@ -177,7 +182,7 @@ Unlike regular ->, doesn't parse the given types.
 Creates a parameterized type.
 The function @f computes the type given the type parameter.
 "
-                ]
+              ]
     [Examples:
      (Forall/parsed (λ (X) X)) => (λ () (forall (λ (X) X)))])
 (define (Forall/parsed f)
@@ -199,13 +204,28 @@ The function @f computes the type given the type parameter.
     [Examples:
      (expr? String) => #false
      (expr? 'a) => #true
-     (expr? `(a ,String) => #true)])
+     (expr? `(a ,String)) => #true])
 (define (expr? x)
   (not (or (primitive? x)
            (intersection? x)
            (union? x)
            (func? x)
            (forall? x))))
+
+#;(define-docs (expr-func? x)
+    [Signature: Type -> Bool]
+    [Purpose: #<<"
+Whether x is an expression type of a function being applied to other types.
+"
+              ]
+    [Examples:
+     (expr-func? String) => #false
+     (expr-func? 'a) => #false
+     (expr-func? `(a ,String)) => #true
+     (expr-func? ''a) => #false]) ; This is tricky because ''a is a list.
+(define (expr-func? x)
+  (and (cons? x)
+       (not (equal? (car x) 'quote))))
 
 #;(define-docs (try-func-params x)
     [Signature: Type -> [Maybe [Listof Type]]]
@@ -270,20 +290,30 @@ and replaces it with the intersection of the results.
 "
               ])
 (define (unparameterize f xs)
-  (define (unparameterize* f*)
-    (unparameterize f* xs))
+  (unparameterize/found f (find-parameters xs)))
+
+#;(define-docs (unparameterize/found f xs)
+    [Signature: Type [Listof Type] -> Type]
+    [Purpose: #<<"
+Applies each parameterized type with each of the given parameters,
+and replaces it with the intersection of the results.
+"
+              ])
+(define (unparameterize/found f xs)
+  (define (unparameterize/found* f*)
+    (unparameterize/found f* xs))
   (define f+ (f))
   (cond
     [(primitive? f+) f]
     [(intersection? f+)
-     (λ () (intersection (map unparameterize* (intersection-subs f+))))]
+     (λ () (intersection (map unparameterize/found* (intersection-subs f+))))]
     [(union? f+)
-     (λ () (union (map unparameterize* (union-subs f+))))]
+     (λ () (union (map unparameterize/found* (union-subs f+))))]
     [(func? f+)
-     (λ () (func (map unparameterize* (func-params f+))
-                 (unparameterize* (func-out f+))))]
-    [(forall? f+) (unparameterize* (app-forall f+ xs))]
-    [(list? f+) (λ () (map unparameterize* f+))]
+     (λ () (func (map unparameterize/found* (func-params f+))
+                 (unparameterize/found* (func-out f+))))]
+    [(forall? f+) (unparameterize/found* (app-forall/found f+ xs))]
+    [(expr-func? f+) (λ () (map unparameterize/found* f+))]
     [else f]))
 
 #;(define-docs (app-forall f xs)
@@ -295,7 +325,17 @@ and returns the intersection of the results.
 "
               ])
 (define (app-forall f xs)
-  (λ () (intersection (map (forall-get-type f) (find-parameters xs)))))
+  (app-forall/found f (find-parameters xs)))
+
+#;(define-docs (app-forall/found f xs)
+    [Signature: ForallType [Listof Type] -> Type]
+    [Purpose: #<<"
+Applies @f with each of the given parameters,
+and returns the intersection of the results.
+"
+              ])
+(define (app-forall/found f xs)
+  (λ () (intersection (map (forall-get-type f) xs))))
 
 #;(define-docs (find-parameters xs)
     [Signature: [Listof Type] -> [Listof Type]]
@@ -315,27 +355,63 @@ to yield types which can then be related with @xs.
 #;(define-docs (find-parts x)
     [Signature: Type -> [Listof Type]]
     [Purpose: #<<"
-Finds types in @x if @x is a list.
+Finds types in @x if @x is a function or expression function.
 These could be used as parameters to make a forall type match @x.
 "
               ])
 (define (find-parts x)
-  (define (find-parts/acc x count)
-    (cons x (find-proper-parts/acc x count)))
-  (define (find-proper-parts/acc x count)
-    (define (find-proper-parts* x*)
-      (find-proper-parts/acc x* count))
-    (define (part-find-parts part)
-      (find-parts/acc part (add1 count)))
-    (define x+ (x))
-    (cond
-      [(>= count subtype-count-limit) '()]
-      [(intersection? x+)
-       (append-map find-proper-parts* (intersection-subs x+))]
-      [(union? x+)
-       (append-map find-proper-parts* (union-subs x+))]
-      [(forall? x+)
-       (find-proper-parts* ((forall-get-type x+) Nothing/parsed))]
-      [(list? x+) (append-map part-find-parts x+)]
-      [else '()]))
   (find-proper-parts/acc x 0))
+
+(define (find-parts/acc x count)
+  (cons x (find-proper-parts/acc x count)))
+
+(define (find-proper-parts/acc x count)
+  (define (find-proper-parts* x*)
+    (find-proper-parts/acc x* (add1 count)))
+  (define (part-find-parts part)
+    (find-parts/acc part (add1 count)))
+  (define x+ (x))
+  (cond
+    [(>= count subtype-count-limit) '()]
+    [(intersection? x+)
+     (append-map find-proper-parts* (intersection-subs x+))]
+    [(union? x+)
+     (append-map find-proper-parts* (union-subs x+))]
+    [(func? x+)
+     (append (append-map part-find-parts (func-params x+))
+             (part-find-parts (func-out x+)))]
+    [(forall? x+)
+     (find-proper-parts* ((forall-get-type x+) Nothing/parsed))]
+    [(expr-func? x+) (append-map part-find-parts x+)]
+    [else '()]))
+
+#;(define-docs (fill-forall x)
+    [Signature: Type -> Type]
+    [Purpose:
+     "Gets rid of forall types by applying them with primitives X0, X1, etc"])
+(define (fill-forall x)
+  (fill-forall/acc x 0))
+
+(define (fill-forall/acc x num)
+  (define (fill-forall* x*)
+    (fill-forall/acc x* (add1 num)))
+  (cond
+    [(labeled-type? x)
+     (labeled-type (fill-forall/acc (labeled-type-proc x) num)
+                   (labeled-type-label x))]
+    [else
+     (define x+ (x))
+     (cond
+       [(primitive? x+) x]
+       [(intersection? x+)
+        (λ () (intersection (map fill-forall* (intersection-subs x+))))]
+       [(union? x+)
+        (λ () (union (map fill-forall* (union-subs x+))))]
+       [(func? x+)
+        (λ () (func (map fill-forall* (func-params x+))
+                    (fill-forall (func-out x+))))]
+       [(forall? x+)
+        (define filler (λ () (primitive (format "X~a" num))))
+        (fill-forall* ((forall-get-type x+) filler))]
+       [(expr-func? x+) (λ () (map fill-forall* x+))]
+       [else x])]))

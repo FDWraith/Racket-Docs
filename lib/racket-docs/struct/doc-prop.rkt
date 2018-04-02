@@ -17,8 +17,11 @@
          effects-doc-prop
          prop-has-type?
          prop-type=?
+         mk-prop?
          prop-type->string
          check-shared-types)
+
+(require [for-template "../types/builtin.rkt"])
 
 #;(define-data DocProp
     [: (doc-prop DocPropType Any)]
@@ -62,9 +65,15 @@ To document an identifier (no arguments), pass #false.
 #;(define-docs type-doc-prop/stx
     [Signature: [Stxof Type] -> DocProp]
     [Purpose:
-     "Evaluates the syntax type, then documents that the term has it."])
+     #<<"
+Evaluates the syntax type, then documents that the term has it.
+If the type is badly formed, will use the type <Error!>.
+"
+     ])
 (define (type-doc-prop/stx type-stx)
-  (type-doc-prop (eval type-stx)))
+  (type-doc-prop
+   (with-handlers [(exn:fail? (λ (exn) <Error!>))]
+     (eval-syntax type-stx))))
 
 #;(define-docs sig-doc-prop
     [Signature: Type -> DocProp]
@@ -73,8 +82,11 @@ To document an identifier (no arguments), pass #false.
 
 #;(define-docs sig-doc-prop/stx
     [Signature: [Stxof Type] -> DocProp]
-    [Purpose:
-     "Evaluates the syntax signature, then documents that the term has it."])
+    [Purpose: #<<"
+Evaluates the syntax signature, then documents that the term has it.
+If the type is badly formed, will use the type <Error!>.
+"
+              ])
 (define sig-doc-prop/stx type-doc-prop/stx)
 
 #;(define-docs syntax-doc-prop
@@ -138,6 +150,11 @@ To document an identifier (no arguments), pass #false.
     [Signature: DocPropType DocPropType -> Bool]
     [Purpose: "Are the prop types equal?"])
 (define prop-type=? symbol=?)
+
+; Creates a function that determines if a given DocProp
+; matches that type
+(define (mk-prop? type)
+  (λ (prop) (prop-type=? type (doc-prop-type prop))))
 
 #;(define-docs prop-type->string
     [Signature: DocPropType -> String]

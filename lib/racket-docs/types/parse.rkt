@@ -31,7 +31,7 @@ Leaves identifiers not starting with lowercase characters as-is
      (cond
        [(type-identifier? #'x) #'x]
        [else #'(λ () 'x+)])]
-    [((~datum quote) x) #'(λ () 'x)]
+    [((~datum quote) x) #'(λ () ''x)]
     [(head param ...)
      #:with head+ (parse-type #'head)
      #:with (param+ ...) (map/stx parse-type #'(param ...))

@@ -16,7 +16,7 @@
 After this many nested comparisons, assumes 1 type is a subtype of another.
 "
               ])
-(define type-comparison-limit 32)
+(define type-comparison-limit 8)
 
 #;(define-docs (nothing/unknown? x)
     [Signature: Type -> Bool]
@@ -105,7 +105,7 @@ Gives up and returns true after @limit nested comparisons.
     [(and (func? x) (func? y))
      (and (types<?/limit (func-params y) (func-params x) (sub1 limit))
           (type<?/limit (func-out x) (func-out y) (sub1 limit)))]
-    [(and (list? x) (list? y)) (types<?/limit x y (sub1 limit))]
+    [(and (expr-func? x) (expr-func? y)) (types<?/limit x y (sub1 limit))]
     [else (equal? x y)]))
 
 #;(define-docs (types<? xs ys)
@@ -143,14 +143,19 @@ Otherwise, #false.
 "
               ])
 (define (params<? xs f)
+  (params<?/found xs (find-parameters xs) f))
+
+(define (params<?/found xs found f)
+  (define (params<?/found* f*)
+    (params<?/found xs found f*))
   (define f+ (f))
   (cond
     [(intersection? f+)
-     (ormap (curry params<? xs) (intersection-subs f+))]
+     (ormap params<?/found* (intersection-subs f+))]
     [(union? f+)
-     (andmap (curry params<? xs) (union-subs f+))]
+     (andmap params<?/found* (union-subs f+))]
     [(func? f+) (types<? xs (func-params f+))]
-    [(forall? f+) (params<? xs (app-forall f+ xs))]
+    [(forall? f+) (params<?/found* (app-forall/found f+ found))]
     [else #false]))
 
 #;(define-docs (refine-for-params xs f)
@@ -161,16 +166,19 @@ returns only the functions which satisfy the given parameters.
 "
               ])
 (define (refine-for-params xs f)
+  (refine-for-params/found xs (find-parameters xs) f))
+
+(define (refine-for-params/found xs found f)
+  (define (refine-for-params/found* f*)
+    (refine-for-params/found xs found f*))
   (define f+ (f))
   (cond
     [(intersection? f+)
-     (λ () (intersection (filter-map (curry refine-for-params xs)
+     (λ () (intersection (filter-map refine-for-params/found*
                                      (intersection-subs f+))))]
     [(union? f+)
-     (and (andmap (curry params<? xs) (union-subs f+))
-          f)]
+     (and (andmap refine-for-params/found* (union-subs f+)) f)]
     [(func? f+)
-     (and (types<? xs (func-params f+))
-          f)]
-    [(forall? f+) (refine-for-params xs (app-forall f+ xs))]
+     (and (types<? xs (func-params f+)) f)]
+    [(forall? f+) (refine-for-params/found* (app-forall/found f+ found))]
     [else #false]))

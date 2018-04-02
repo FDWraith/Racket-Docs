@@ -6,14 +6,14 @@
     [Interpretation: "A data definition created in phase 1."]
     [Examples: 5])
 
-  (define-data [Either X Y]
+  #;(define-data [Either X Y]
     [: - X
        - Y]
     [Interpretation: "A data definition constructor."]))
 
-#;(define-data [Either X Y]
-  [: - X
-     - Y]
+(define-data [Either X Y]
+  [: - 'x
+     - 'y]
   [Interpretation: "A data definition constructor."])
 
 (define-data String/False

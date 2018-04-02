@@ -59,8 +59,8 @@ Throws an error if the function arguments definately don't conform to the
 function's type.
 "
                 ])
-(define-syntax typed-app
-  (syntax-parser
+(define-syntax (typed-app stx)
+  (syntax-parse stx
     [(_ f x ...)
      (cond
        [; Checks only the function, because this-syntax or #'(f x ...)
@@ -127,7 +127,7 @@ and raises a syntax error if the body doesn't conform to the output.
 (define-syntax typed-named-λ
   (syntax-parser
     [(_ fid:id (prm:id ...) body ... out)
-     (unless (skip-type-check? #'fid)
+     #;(unless (skip-type-check? #'fid)
        (define-values (_ type) (type-of #'fid))
        (define param-types (try-func-params type))
        (define out-type (try-func-out type))

@@ -63,7 +63,7 @@
   (define props (doc-entry-props dat))
   (define type-prop (extract (mk-prop? 'type) props))
   (define type (doc-prop-value type-prop))
-  (define type-string (format "(code:line ~a)" (string-join (type-label/union type) "\n")))
+  (define type-string (wrap-safe (string-join (type-label/union type) "\n")))
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define desc (doc-prop-value desc-prop))
   (define example-prop (extract (mk-prop? 'examples) props))
@@ -81,7 +81,7 @@
   (define props (doc-entry-props ent))
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define type-prop (extract (mk-prop? 'type) props))
-  (define type (type-label (doc-prop-value type-prop)))
+  (define type (safe-type-label (doc-prop-value type-prop)))
   (define desc (doc-prop-value desc-prop))
   (string-append "@defthing[#:kind \"constant\" #:link-target? #f "
                  name
@@ -98,19 +98,22 @@
   (define args-prop (extract (mk-prop? 'args) props))
   (define args (rest (map syntax->string (syntax->list (doc-prop-value args-prop)))))
   (define type-prop (extract (mk-prop? 'type) props))
-  (define types (try-func-params (doc-prop-value type-prop)))
+  (define func-type (fill-forall (doc-prop-value type-prop)))
+  (define param-types (try-func-params func-type))
+  (define param-type-labels (map safe-type-label param-types))
   (define args-info
-    (and types
-         (map (λ (arg type) (string-append "[" arg " " (type-label type) "]"))
-              args types)))
+    (and param-types
+         (map (λ (arg type-label) (string-append "[" arg " " type-label "]"))
+              (pad-right args "???" (length param-type-labels))
+              (pad-right param-type-labels "???" (length args)))))
   (define args-string
     (if args-info
         (string-join args-info " ")
-        "??? ..."))
-  (define out-type (try-func-out (doc-prop-value type-prop)))
+        ""))
+  (define out-type (try-func-out func-type))
   (define output
     (if out-type
-        (type-label out-type)
+        (safe-type-label out-type)
         "???"))
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define purp (doc-prop-value desc-prop))
@@ -133,3 +136,14 @@
         [(interpret-data-example? ex) ""]
         [(eval-example? ex) ""])))
   "")
+
+; Type -> String
+; The label of a type, wrapped in (code:line ...),
+; so it will be considered a single argument even if the type has spaces.
+(define (safe-type-label x)
+  (wrap-safe (type-label x)))
+
+; String -> String
+; Makes the string considered a single argument even if it has spaces.
+(define (wrap-safe x)
+  (format "(code:line ~a)" x))
