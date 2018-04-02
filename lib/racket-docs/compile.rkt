@@ -11,5 +11,5 @@
   (struct->scribble.compile-docs docs name)
   (displayln "Compiled scribble.")
   (displayln "Compiling html ...")
-  (scribble->html.compile-docs name #:delete #true)
+  (scribble->html.compile-docs name #:delete #false)
   (displayln "Compiled html."))
