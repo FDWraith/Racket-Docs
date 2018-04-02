@@ -65,17 +65,18 @@
   (define type (doc-prop-value type-prop))
   (define type-string (format "(code:line ~a)" (string-join (type-label/union type) "\n")))
   (define desc-prop (extract (mk-prop? 'desc) props))
-  (define desc (doc-prop-value desc-prop))
+  (define desc (doc-prop-value desc-prop))  
   (define example-prop (extract (mk-prop? 'examples) props))
-  (define examples (compile-doc-examples (doc-prop-value example-prop)))
+  (define examples (if (empty? example-prop) ""
+                       (compile-doc-examples (doc-prop-value example-prop))))
   (string-append "@defthing[#:kind \"data defintion\" #:link-target? #f "
                  dat-type
                  " Type #:value "
                  type-string
                  "]{\n"
                  desc "\n"
-                 examples
-                 "\n}\n"))
+                 "}\n\n"
+                 examples "\n"))
 
 ; Compiles Identifiers to valid Scribble line(s)
 (define (compile-doc-const ent)
@@ -86,14 +87,16 @@
   (define type (type-label (doc-prop-value type-prop)))
   (define desc (doc-prop-value desc-prop))
   (define example-prop (extract (mk-prop? 'examples) props))
-  (define examples (compile-doc-examples (doc-prop-value example-prop)))
+  (define examples (if (empty? example-prop) ""
+                       (compile-doc-examples (doc-prop-value example-prop))))
   (string-append "@defthing[#:kind \"constant\" #:link-target? #f "
                  name
                  " "
                  type
                  "]{\n"
                  desc
-                 "\n}\n"))
+                 "\n}\n\n"
+                 examples "\n"))
 
 ; Compiles Functions to valid Scribble line(s)
 (define (compile-doc-func ent)
@@ -119,14 +122,15 @@
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define purp (doc-prop-value desc-prop))
   (define example-prop (extract (mk-prop? 'examples) props))
-  (define examples (compile-doc-examples (doc-prop-value example-prop)))
+  (define examples (if (empty? example-prop) ""
+                       (compile-doc-examples (doc-prop-value example-prop))))
   (string-append "@defproc[#:link-target? #f ("
                  name " "
                  args-string ") "
                  output "]{\n"
                  purp "\n"
-                 examples
-                 "\n}\n"))
+                 "\n}\n\n"
+                 examples "\n"))
 
 ; Compiles Macros to valid Scribble line(s)
 (define (compile-doc-macro ent)
@@ -134,21 +138,29 @@
   (define props (doc-entry-props ent))
   (define stx-prop (extract (mk-prop? 'syntax) props))
   (define sem-prop (extract (mk-prop? 'desc) props))
-  "another string heree")
+  (define stx (syntax->string (doc-prop-value stx-prop)))
+  (define sem (doc-prop-value sem-prop))
+  (string-append "@defthing[#:kind \"Syntax\" #:link-target? #f "
+                 name
+                 "]{\n"
+                 sem 
+                 "\n}\n"))
 
 ; Compiles Examples
-(define (compile-examples loe)
+(define (compile-doc-examples loe)
   (define (compile-example ex)
     (cond
-      [(plain-data-example? ex) (syntax->string (plain-data-example-expr ex))]
+      [(plain-data-example? ex)
+       (format "@racketblock|{~a}| \n"
+               (syntax->string (plain-data-example-expr ex)))]
       [(interpret-data-example? ex)
-       (format "@code[#:lang racket]|{~a}| can be interpreted as @code[#:lang racket]|{~a}|. \n"
+       (format "@racketblock{~a} can be interpreted as @racketblock{~a}. \n"
                (syntax->string (interpret-data-example-expr ex))
-               (syntax->string (interpret-data-example-interpret ex)))]
+               (syntax->string (interpret-data-example-interpretation ex)))]
       [(eval-example? ex)
-       (format "@codeblock[#:lang racket]|{~a}| evaluates to @codeblock[#:lang racket]|{~a}|. \n"
+       (format "@racketblock{~a} evaluates to @racketblock{~a}. \n"
                (syntax->string (eval-example-expr ex))
                (syntax->string (eval-example-expected ex)))]))
   (string-append
-   "@bold{Examples:} \n"
-   (string-join (map (λ (ex) (format " - ~a \n " (compile-example ex))) loe) "")))
+   "@bold{Examples:} \n\n"
+   (string-join (map (λ (ex) (format "~a \n " (compile-example ex))) loe) "")))

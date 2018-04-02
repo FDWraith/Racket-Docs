@@ -5,7 +5,8 @@
 (define-data Hello
   [: - Nat
      - String]
-  [Interpretation: "What in the world"])
+  [Interpretation: "What in the world"]
+  [Examples: 1])
 
 (define-docs (hello o)
   [Signature: Hello -> Bool]
@@ -15,7 +16,9 @@
 
 (define-data What
   [: Int -> Bool]
-  [Interpretation: "Huh"])
+  [Interpretation: "Huh"]
+  [Examples:
+   (λ (i) #false)])
 
 (define-docs WORLD_STATE
   [Signature: Nat]
