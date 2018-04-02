@@ -1,0 +1,54 @@
+#lang scribble/manual
+
+@title{Prototype-Implemented Documentation}
+@secref{datadef}
+
+@secref{constdef}
+
+@secref{funcdef}
+
+@secref{macrodef}
+
+
+@section[#:tag "datadef"]{Data Definitions}
+@defthing[#:kind "data defintion" #:link-target? #f OpChain Type #:value (code:line (cons Num '())
+(cons Num (cons Operator OpChain)))]{
+A combination of infix operators and numbers, without parenthesis.
+}
+
+@defthing[#:kind "data defintion" #:link-target? #f Operator Type #:value (code:line '+
+'-
+'*
+'/)]{
+A mathematical operator, describes how 2 numbers are combined.
+}
+
+@defthing[#:kind "data defintion" #:link-target? #f Natural Type #:value (code:line 0
+(add1 Natural))]{
+A natural number.
+}
+
+@defthing[#:kind "data defintion" #:link-target? #f (Tree X) Type #:value (code:line (tree X [Listof [Tree X]]))]{
+A tree.
+@racket[@value] refers to the top node.
+@racket[@children] refers to child trees. Each @racket[@value] in @racket[@children] is a child node,
+each @racket[@value] in @racket[@children] of @racket[@children] is a grandchild node, and so on.
+}
+
+@section[#:tag "constdef"]{Constant Definitions}
+@defthing[#:kind "constant" #:link-target? #f annotate-depth/a {X0} [[Tree (cons X0 (cons Nat '()))] -> [Tree (cons X0 (cons Nat '()))]]]{
+Pairs each element in the @racket[@tree] with its level, where the root of the
+tree has level @racket[@depth.]
+}
+
+@section[#:tag "funcdef"]{Function Definitions}
+@defproc[#:link-target? #f (string* [str String] [n [Union 0 PosInt]]) String]{
+Appends the given @racket[@str] to itself @racket[@n] times.
+}
+
+@defproc[#:link-target? #f (annotate-depth [t0 (tree X0 [Union '() (cons (... ... ...) [Union ...])])]) (tree (cons X0 (cons [Union ... PosInt] '())) [Union '() (cons (... ... ...) [Union ...])])]{
+Pairs each element in the @racket[@tree] with its level, where the root of the tree
+has level 0.
+}
+
+@section[#:tag "macrodef"]{Macro Definitions}

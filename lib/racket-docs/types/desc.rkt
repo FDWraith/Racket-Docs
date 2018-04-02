@@ -14,7 +14,7 @@ How many layers of sub-types will be used in a type summary or label,
 before ... is used. Prevents unnecessary or infinite recursion.
 "
               ])
-(define summary-recur-limit 10)
+(define summary-recur-limit 4)
 
 #;(define-docs (type-summary type)
     [Signature: Type -> String]
@@ -26,7 +26,9 @@ before ... is used. Prevents unnecessary or infinite recursion.
      "[Union Pos '0]"
      (type-label (labeled-type (λ () (primitive "PosInt")) "Pos")) => "Pos"])
 (define (type-summary type)
-  (define (type-summary/acc type recurs-left)
+  (type-summary/acc type summary-recur-limit))
+
+(define (type-summary/acc type recurs-left)
     (cond
       [(zero? recurs-left) "..."]
       [else
@@ -34,7 +36,6 @@ before ... is used. Prevents unnecessary or infinite recursion.
                            (- summary-recur-limit recurs-left)
                            (λ (_) #true)
                            (curryr type-summary/acc (sub1 recurs-left)))]))
-  (type-summary/acc type summary-recur-limit))
 
 #;(define-docs (type-label type)
     [Signature: Type -> String]
@@ -45,7 +46,9 @@ before ... is used. Prevents unnecessary or infinite recursion.
                                              (λ () 0)] "Nat")) => "Nat"
      (type-label (labeled-type (λ () (primitive "PosInt")) "Pos")) => "Pos"])
 (define (type-label type)
-  (define (type-label/acc type recurs-left)
+  (type-label/acc type summary-recur-limit))
+
+(define (type-label/acc type recurs-left)
     (cond
       [(labeled-type? type) (labeled-type-label type)]
       [(zero? recurs-left) "..."]
@@ -53,7 +56,6 @@ before ... is used. Prevents unnecessary or infinite recursion.
                                 (- summary-recur-limit recurs-left)
                                 show-in-intersection-label?
                                 (curryr type-label/acc (sub1 recurs-left)))]))
-  (type-label/acc type summary-recur-limit))
 
 #;(define-docs (type-label/union type)
     [Signature: Type -> [Listof String]]
@@ -85,16 +87,19 @@ if it's in an intersection with other types.
 "
               ])
 (define (show-in-intersection-label? x)
-  (define x+ (x))
   (cond
-    [(intersection? x+)
-     (ormap show-in-intersection-label? (intersection-subs x+))]
-    [(union? x+)
-     (andmap show-in-intersection-label? (union-subs x+))]
-    [(expr? x+) #false]
-    [(forall? x+)
-     (show-in-intersection-label? ((forall-get-type x+) Nothing/parsed))]
-    [else #true]))
+    [(labeled-type? x) #true]
+    [else
+     (define x+ (x))
+     (cond
+       [(intersection? x+)
+        (andmap show-in-intersection-label? (intersection-subs x+))]
+       [(union? x+)
+        (andmap show-in-intersection-label? (union-subs x+))]
+       [(expr? x+) #false]
+       [(forall? x+)
+        (show-in-intersection-label? ((forall-get-type x+) Nothing/parsed))]
+       [else #true])]))
 
 #;(define-docs (type-summary/recur type eid sub-filter sub-summary)
     [Signature: Type Nat [Type -> Bool] [Type -> String] -> String]
@@ -116,16 +121,20 @@ ignores intersection sub-types which return false in @sub-filter
      (define filtered-intersection-subs
        (filter sub-filter (intersection-subs type+)))
      (define intersection-subs*
-       (if (empty? filtered-intersection-subs)
-           all-intersection-subs
-           filtered-intersection-subs))
+       (cond
+         [(empty? all-intersection-subs) '()]
+         [(empty? filtered-intersection-subs)
+          (list (first all-intersection-subs))]
+         [else filtered-intersection-subs]))
      (cond
        [(empty? intersection-subs*) "Any"]
        [(empty? (rest intersection-subs*))
         (sub-summary (first intersection-subs*))]
        [else
          (format "[Intersection ~a]"
-                 (string-join (map sub-summary intersection-subs*) " "))])]
+                 (string-join (remove-duplicates (map sub-summary
+                                                      intersection-subs*))
+                              " "))])]
     [(union? type+)
      (cond
        [(empty? (union-subs type+)) "Nothing/Unknown"]
@@ -133,16 +142,18 @@ ignores intersection sub-types which return false in @sub-filter
         (sub-summary (first (union-subs type+)))]
        [else
         (format "[Union ~a]"
-                (string-join (map sub-summary (union-subs type+)) " "))])]
+                (string-join (remove-duplicates (map sub-summary
+                                                     (union-subs type+)))
+                             " "))])]
     [(func? type+)
      (format "[~a -> ~a]"
              (string-join (map sub-summary (func-params type+)) " ")
              (sub-summary (func-out type+)))]
     [(forall? type+)
      (define eparam (λ () (primitive (format "X~a" eid))))
-     (format "{~a} ~a"
+     (format "{All ~a} ~a"
              (sub-summary eparam)
              (sub-summary ((forall-get-type type+) eparam)))]
-    [(list? type+)
+    [(expr-func? type+)
      (format "(~a)" (string-join (map sub-summary type+) " "))]
-    [else (format "~a" type+)]))
+    [else (datum->string type+)]))

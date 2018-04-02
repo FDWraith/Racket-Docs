@@ -138,13 +138,15 @@ and creates a result using (defn ...).
        #:with defd-head-label
        (datum->syntax #'defd (symbol->string (syntax-e #'defd)))
        #'(define (defd param ...)
-           ; Sometimes types in rest aren't parsed, crashing label ...
-           (define defd-label
-             (if (or (not (procedure? param)) ...)
-                 "???"
-                 (type-con-label (list defd-head-label
-                                       (type-label param) ...))))
-           (labeled-type (λ () defn ...) defd-label))]
+           (define out (λ () defn ...))
+           (cond
+             ; Sometimes types in rest aren't parsed, crashing label ...
+             [(or (not (procedure? param)) ...) out]
+             [else
+              (define defd-label
+                (type-con-label (list defd-head-label
+                                      (type-label param) ...)))
+              (labeled-type out defd-label)]))]
       [(_ (defd:id param:id ... . rest:id) #:no-label defn ...)
        #:with defd-head-label
        (datum->syntax #'defd (symbol->string (syntax-e #'defd)))
@@ -154,15 +156,16 @@ and creates a result using (defn ...).
        #:with defd-head-label
        (datum->syntax #'defd (symbol->string (syntax-e #'defd)))
        #'(define (defd param ... . rest)
-           ; Sometimes types in rest aren't be parsed, crashing label ...
-           (define defd-label
-             (if (or (not (procedure? param)) ...)
-                 "???"
+           (cond
+             ; Sometimes types in rest aren't parsed, crashing label ...
+             [(or (not (procedure? param)) ...
+                  (ormap (compose not procedure?) rest)) out]
+             [else
+              (define defd-label
                  (type-con-label (list* defd-head-label
                                         (type-label param) ...
-                                        (map type-label rest)))))
-           (labeled-type (λ () defn ...) defd-label))]))
-  )
+                                        (map type-label rest))))
+              (labeled-type (λ () defn ...) defd-label)]))])))
 
 #;(define-docs define-type/syntax
     [Syntax: (define-type/syntax (defd:id x ...) #:no-label defn)]

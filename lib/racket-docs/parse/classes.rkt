@@ -7,7 +7,8 @@
          extra-doc-prop
          extra-data-doc-prop)
 
-(require "../struct.rkt"
+(require "raw-text.rkt"
+         "../struct.rkt"
          "../utils/syntax.rkt"
          "../utils/parse-class.rkt"
          syntax/parse
@@ -23,7 +24,7 @@
 
 (define-splicing-parse-class union-type
   #:datum-literals (-)
-  [(~seq (~seq - ~! sub-type:unparsed-type) ...+)
+  [(~seq (~seq - ~! sub-type:type) ...+)
    (datum->syntax (first this-syntax) [cons 'Union #'(sub-type.out ...)])]
   [x:type #'x.out])
 
@@ -41,7 +42,17 @@
    #'[-> i.out ... o.out]]
   [(~seq i:non-inline-type ... -> o:non-inline-type ...)
    #'[-> i.out ... (values o.out ...)]]
-  [x:non-inline-type #'x.out])
+  [x:non-inline-type #'x.out]
+  [(~seq x:non-inline-type y:non-inline-type z:non-inline-type ...)
+   #:fail-when #true #<<"
+Multiple types separated by spaces.
+Examples:
+- 'Listof String' (should be '[Listof String]'),
+- '{X} (cons X [Listof X])' (should be '{All X} (cons X [Listof X])'),
+- '2 2 4' (should be '2 2 -> 4').
+"
+   #'(void)
+   ])
 
 (define-parse-class non-inline-type
   #:datum-literals (All ->)
@@ -58,14 +69,14 @@
   [x #'x])
 
 (define-parse-class raw-text
-  [str:string (syntax-e #'str)])
+  [str:string (parse-raw-text (syntax-e #'str))])
 
 (define-parse-class extra-doc-prop
   #:datum-literals (Examples: Accumulator: Generative: Effects: :)
   [[Examples: ~! ex:example ...]
    (examples-doc-prop (parse-classes (ex ...)))]
   [[Accumulator: ~! acc:id : desc:raw-text]
-   (accumulator-doc-prop #'acc (parse-class desc))]
+   (accumulator-doc-prop (accumulator #'acc (parse-class desc)))]
   [[Generative: ~! desc:raw-text]
    (generative-doc-prop (parse-class desc))]
   [[Effects: ~! desc:raw-text]

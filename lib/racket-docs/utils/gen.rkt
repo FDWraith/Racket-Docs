@@ -4,10 +4,12 @@
          map/unzip
          map/maybe
          transpose
+         pad-right
          list->values
          values->list
          thunk?
          equal-datum?
+         datum->string
          idx->ordinal
          cardinal->ordinal)
 
@@ -30,15 +32,27 @@
   (define init-values (build-list n (λ (_) '())))
   (list->values (apply foldr trans/add-values init-values xs)))
 
+; [X -> Y] [Maybe X] -> [Maybe Y]
+; Only transforms if not #false.
 (define (map/maybe f x)
   (cond
     [x (f x)]
     [else x]))
 
+; [Listof List] -> [Listof List]
+; Rearranges rows and columns in a 2D list.
 (define (transpose xs)
   (cond
     [(empty? xs) '()]
     [(cons? xs) (apply map list xs)]))
+
+; [Listof X] X Nat -> [Listof X]
+; If the length of the list is smaller than the given length,
+; appends the given item until it's equal to the given length.
+(define (pad-right xs x target)
+  (cond
+    [(>= (length xs) target) xs]
+    [else (append xs (build-list (- target (length xs)) (λ (y) x)))]))
 
 (define (list->values xs)
   (apply values xs))
@@ -74,6 +88,15 @@
            (equal-datum?/acc (x) (y) (- thunks-left 1)))]
       [else (equal?/recur x y equal-datum?*)]))
   (equal-datum?/acc x y equal-thunk-limit))
+
+; Any -> String
+; Converts the datum to a string which would be printed with display.
+(define (datum->string x)
+  (cond
+    [(and (cons? x)
+          (equal? (first x) 'quote))
+     (format "'~a" (datum->string (second x)))]
+    [else (format "~a" x)]))
 
 ; Nat -> String
 ; Converts an index into an ordinal.
