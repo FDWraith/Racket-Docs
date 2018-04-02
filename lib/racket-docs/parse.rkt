@@ -21,8 +21,8 @@
                      "parse/errors.rkt"
                      "struct.rkt"
                      "utils.rkt"
-                     "types.rkt"
-                     syntax/parse]
+                     syntax/parse
+                     racket/base]
          "types.rkt")
 
 (begin-for-syntax
@@ -56,23 +56,23 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           [Purpose: purpose:raw-text]
           extra-prop:extra-doc-prop ...)
        #:with stx #`#'#,stx
-       #:with run-tests (tests-for-props (parse-classes (extra-prop ...)))
+       #:with run-tests (tests-for-props1 (parse-classes (extra-prop ...)))
        #`(begin
            (define entry
              (cond
                [(boolean? (attribute head.args))
                 (const-doc-entry
                  #'head.id
-                 (list* (sig-doc-prop/stx #'sig.out1)
+                 (list* (sig-doc-prop sig.out)
                         (purpose-doc-prop purpose.out1)
                         extra-prop.out1 ...))]
                [else
                 (func-doc-entry
                  #'head.id
-                 (list* (args-doc-prop (attribute head.args))
-                        (sig-doc-prop/stx #'sig.out1)
-                        (purpose-doc-prop purpose.out1)
-                        extra-prop.out1 ...))]))
+                 (list (args-doc-prop (attribute head.args))
+                       (sig-doc-prop sig.out)
+                       (purpose-doc-prop purpose.out1)
+                       extra-prop.out1 ...))]))
            (add-doc! entry 'define-docs stx #'(extra-prop ...))
            run-tests)]
       [(_ id:id
@@ -80,7 +80,7 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           [Semantics: semantics:raw-text]
           extra-prop:extra-doc-prop ...)
        #:with stx #`#'#,stx
-       #:with run-tests (tests-for-props (parse-classes (extra-prop ...)))
+       #:with run-tests (tests-for-props1 (parse-classes (extra-prop ...)))
        #'(begin
            (define entry
              (macro-doc-entry #'id
@@ -94,19 +94,22 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
   (define-syntax (define-data stx)
     (syntax-parse stx
       #:datum-literals (: Interpretation:)
-      [(_ id:id
+      [(_ head:head
           [: type:union-type]
           [Interpretation: interpretation:raw-text]
           extra-prop:extra-data-doc-prop ...)
-       #:with run-tests (tests-for-props (parse-classes (extra-prop ...)))
+       #:with stx #`#'#,stx
+       #:with filled-type (fill-type-args (attribute head.args-pure) #'type.out)
+       #:with run-tests (tests-for-props1 (parse-classes (extra-prop ...)))
        #'(begin
            (define entry
              (type-doc-entry
-              #'id
-              (list* (type-doc-prop type.out)
-                     (interpretation-doc-prop interpretation.out1)
-                     extra-prop.out1 ...)))
+              #'head
+              (list (type-doc-prop filled-type)
+                    (interpretation-doc-prop interpretation.out1)
+                    extra-prop.out1 ...)))
            (add-doc! entry 'define-data stx #'(extra-prop ...))
+           (define-type/parsed head type.out)
            run-tests)]))
 
   ; See phase 0 definition for docs
@@ -152,7 +155,6 @@ If documenting a function, also assignes the documented type.
         [Purpose: purpose:raw-text]
         extra-prop:extra-doc-prop ...)
      (define sig+ (parse-class sig))
-     #;(println sig+)
      (define extra-props+ (parse-classes (extra-prop ...)))
      (define entry
        (cond
@@ -188,7 +190,7 @@ If documenting a function, also assignes the documented type.
 
 #;(define-docs define-data
   [Syntax:
-   (define-data id:id
+   (define-data head:head
      [: type:union-type]
      [Interpretation: interpretation:raw-text]
      extra-prop:extra-data-doc-prop ...)]
@@ -196,23 +198,22 @@ If documenting a function, also assignes the documented type.
 (define-syntax (define-data stx)
   (syntax-parse stx
     #:datum-literals (: Interpretation:)
-    [(_ id:id
+    [(_ head:head
         [: type:union-type]
         [Interpretation: interpretation:raw-text]
         extra-prop:extra-data-doc-prop ...)
-     #;(println #'type)
      (define type+ (parse-class type))
-     #;(println type+)
      (define extra-props+ (parse-classes (extra-prop ...)))
+     (define filled-type (fill-type-args (attribute head.args-pure) type+))
      (define entry
        (type-doc-entry
-        #'id
-        (list* (type-doc-prop/stx type+)
+        #'head
+        (list* (type-doc-prop/stx filled-type)
                (interpretation-doc-prop (parse-class interpretation))
                extra-props+)))
      (add-doc! entry 'define-data stx #'(extra-prop ...))
      #`(begin
-         (define-type/parsed id #,type+) ; Long-Term TODO: Add type constructors
+         (define-type/parsed head #,type+)
          #,(tests-for-props extra-props+))]))
 
 #;(define-docs define-syntax/docs

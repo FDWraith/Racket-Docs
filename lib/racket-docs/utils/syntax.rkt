@@ -9,6 +9,7 @@
          flatten/stx
          add-bindings
          syntax-property/recur
+         identifier->stx-string
          syntax->string
          extract
          mk-prop?)
@@ -76,8 +77,14 @@
     [(list? stx+e) (datum->syntax stx+ (map syntax-property/recur* stx+e))]
     [else stx+]))
 
+; Identifier -> [Stx String]
+; Converts an identifier to a string of its name.
+; Example: (identifier->stx-string #'foo) => #'"foo"
+(define (identifier->stx-string id)
+  (datum->syntax id (symbol->string (syntax-e id))))
+
 ; Syntax -> String
-; converts a piece of syntax to a string
+; Converts a piece of syntax to a string.
 (define (syntax->string stx)
   (local
     (; Syntax -> Boolean

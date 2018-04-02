@@ -1,7 +1,10 @@
 #lang racket
 
-(provide [for-syntax parse-type]
+(provide [for-syntax define-type
+                     define-type/parsed
+                     parse-type]
          [all-from-out "types/builtin.rkt"]
+         [all-from-out "types/desc.rkt"]
          [all-from-out "types/struct.rkt"]
          define-type
          define-type/parsed
@@ -16,4 +19,5 @@
          "types/use.rkt"
          "types/builtin.rkt"
          "types/create.rkt"
+         "types/desc.rkt"
          "types/struct.rkt")

@@ -10,6 +10,7 @@
          get-app-error)
 
 (require "subtype.rkt"
+         "desc.rkt"
          "struct.rkt"
          "../utils.rkt")
 

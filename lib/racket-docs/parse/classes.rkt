@@ -15,15 +15,17 @@
 
 (define-syntax-class head
   [pattern id:id
-           #:attr args #false]
+           #:attr args #false
+           #:attr args-pure #false]
   [pattern (id:id arg:id ...)
-           #:attr args #'(list arg ...)])
+           #:attr args #'(list arg ...)
+           #:attr args-pure #'(arg ...)])
 
 (define-splicing-parse-class union-type
   #:datum-literals (-)
   [(~seq (~seq - ~! sub-type:unparsed-type) ...+)
-   #`[Union #,@(parse-classes (sub-type ...))]]
-  [x:type (parse-class x)])
+   (datum->syntax (first this-syntax) [cons 'Union #'(sub-type.out ...)])]
+  [x:type #'x.out])
 
 (define-splicing-parse-class type
   [x:unparsed-type (parse-type #'x.out)])
