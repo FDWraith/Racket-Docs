@@ -44,7 +44,7 @@
               (list String Int Nat)]
   [Purpose: "Combines 2 tuples"])
 (define (+tuple x y)
-  #;(list (string-append (second x) (first y))
+  (list (string-append (second x) (first y))
           (+ (first x) (second y))
           (+ (third x) (third y)))
   (list (string-append (first x) (first y))

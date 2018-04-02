@@ -151,14 +151,14 @@
   (define (compile-example ex)
     (cond
       [(plain-data-example? ex)
-       (format "@racketblock|{~a}| \n"
+       (format "@racketblock[~a] \n"
                (syntax->string (plain-data-example-expr ex)))]
       [(interpret-data-example? ex)
-       (format "@racketblock{~a} can be interpreted as @racketblock{~a}. \n"
+       (format "@racketblock[~a] can be interpreted as @racketblock[~a]. \n"
                (syntax->string (interpret-data-example-expr ex))
                (syntax->string (interpret-data-example-interpretation ex)))]
       [(eval-example? ex)
-       (format "@racketblock{~a} evaluates to @racketblock{~a}. \n"
+       (format "@racketblock[~a] evaluates to @racketblock[~a]. \n"
                (syntax->string (eval-example-expr ex))
                (syntax->string (eval-example-expected ex)))]))
   (string-append

@@ -102,6 +102,7 @@
          [(symbol? exp) (symbol->string exp)]
          [(number? exp) (number->string exp)]
          [(boolean? exp) (boolean->string exp)]
+         [(string? exp) exp]
          [(list? exp)
           (string-append "(" (string-join (map stringify exp) " ") ")")]
          [else (error "datum cannot be turned to string")])))

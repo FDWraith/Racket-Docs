@@ -1,12 +1,12 @@
-#lang racket
-
-(require "../lib/racket-docs/main.rkt")
+#lang racket-docs
 
 (define-data Hello
   [: - Nat
      - String]
   [Interpretation: "What in the world"]
-  [Examples: 1])
+  [Examples:
+   1
+   "Hello"])
 
 (define-docs (hello o)
   [Signature: Hello -> Bool]
@@ -24,6 +24,3 @@
   [Signature: Nat]
   [Purpose: "Describes the state of the world"])
 (define WORLD_STATE 20)
-
-(begin-for-syntax
-  (compile-docs (get-all-docs)))
