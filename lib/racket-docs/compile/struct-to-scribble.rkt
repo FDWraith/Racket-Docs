@@ -67,12 +67,14 @@
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define desc (doc-prop-value desc-prop))
   (define example-prop (extract (mk-prop? 'examples) props))
+  (define examples (compile-doc-examples (doc-prop-value example-prop)))
   (string-append "@defthing[#:kind \"data defintion\" #:link-target? #f "
                  dat-type
                  " Type #:value "
                  type-string
                  "]{\n"
-                 desc
+                 desc "\n"
+                 examples
                  "\n}\n"))
 
 ; Compiles Identifiers to valid Scribble line(s)
@@ -83,6 +85,8 @@
   (define type-prop (extract (mk-prop? 'type) props))
   (define type (type-label (doc-prop-value type-prop)))
   (define desc (doc-prop-value desc-prop))
+  (define example-prop (extract (mk-prop? 'examples) props))
+  (define examples (compile-doc-examples (doc-prop-value example-prop)))
   (string-append "@defthing[#:kind \"constant\" #:link-target? #f "
                  name
                  " "
@@ -114,7 +118,15 @@
         "???"))
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define purp (doc-prop-value desc-prop))
-  (string-append "@defproc[#:link-target? #f (" name " " args-string ") " output "]{\n" purp "\n}\n"))
+  (define example-prop (extract (mk-prop? 'examples) props))
+  (define examples (compile-doc-examples (doc-prop-value example-prop)))
+  (string-append "@defproc[#:link-target? #f ("
+                 name " "
+                 args-string ") "
+                 output "]{\n"
+                 purp "\n"
+                 examples
+                 "\n}\n"))
 
 ; Compiles Macros to valid Scribble line(s)
 (define (compile-doc-macro ent)
@@ -126,10 +138,17 @@
 
 ; Compiles Examples
 (define (compile-examples loe)
-  (define compile-example
-    (λ (ex)
-      (cond
-        [(plain-data-example? ex) ""]
-        [(interpret-data-example? ex) ""]
-        [(eval-example? ex) ""])))
-  "")
+  (define (compile-example ex)
+    (cond
+      [(plain-data-example? ex) (syntax->string (plain-data-example-expr ex))]
+      [(interpret-data-example? ex)
+       (format "@code[#:lang racket]|{~a}| can be interpreted as @code[#:lang racket]|{~a}|. \n"
+               (syntax->string (interpret-data-example-expr ex))
+               (syntax->string (interpret-data-example-interpret ex)))]
+      [(eval-example? ex)
+       (format "@codeblock[#:lang racket]|{~a}| evaluates to @codeblock[#:lang racket]|{~a}|. \n"
+               (syntax->string (eval-example-expr ex))
+               (syntax->string (eval-example-expected ex)))]))
+  (string-append
+   "@bold{Examples:} \n"
+   (string-join (map (λ (ex) (format " - ~a \n " (compile-example ex))) loe) "")))
