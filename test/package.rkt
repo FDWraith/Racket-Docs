@@ -1,5 +1,21 @@
 #lang racket-docs
 
+(begin-for-syntax
+  (define-data StxDocumentedInt
+    [: Int]
+    [Interpretation: "A data definition created in phase 1."]
+    [Examples: 5])
+
+  (define-data [Either X Y]
+    [: - X
+       - Y]
+    [Interpretation: "A data definition constructor."]))
+
+#;(define-data [Either X Y]
+  [: - X
+     - Y]
+  [Interpretation: "A data definition constructor."])
+
 (define-data String/False
   [: - String
      - Bool]
@@ -13,7 +29,7 @@
 (define hello "Hello")
 
 (define-docs (+int x y)
-  [Signature: Int Int -> Int]
+  [Signature: StxDocumentedInt Int -> Int]
   [Purpose: "Adds 2 integers."])
 (define +int +)
 
