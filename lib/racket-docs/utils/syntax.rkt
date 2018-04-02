@@ -7,6 +7,7 @@
          mk-applied-id-macro
          map/stx
          flatten/stx
+         stx-expression?
          add-bindings
          syntax-property/recur
          identifier->stx-string
@@ -74,6 +75,17 @@
   (cond
     [(list? stx+e) (datum->syntax stx+ (map syntax-property/recur* stx+e))]
     [else stx+]))
+
+; Syntax -> Bool
+; Whether the syntax is an expression, not a definition.
+(define stx-expression?
+  (syntax-parser
+    [((~datum define) x ...) #false]
+    [((~datum define-syntax) x ...) #false]
+    [((~datum define-values) x ...) #false]
+    [((~datum define-syntaxes) x ...) #false]
+    [_ #true]))
+    
 
 ; Identifier -> [Stx String]
 ; Converts an identifier to a string of its name.

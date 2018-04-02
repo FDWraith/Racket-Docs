@@ -80,6 +80,12 @@ each @value in @children of @children is a grandchild node, and so on.
    (tree (tree "Complex" '()) (list (tree "Tree" '())))])
 (struct tree (value children) #:transparent)
 
+(define-docs (mk-tree value children)
+  [Signature: {All X} X [Listof [Tree X]] -> [Tree X]]
+  [Purpose: "Creates a tree."])
+(define (mk-tree value children)
+  (tree value children))
+
 (define-docs (annotate-depth t0)
   [Signature: {All X} [Tree X] -> [Tree (list X Nat)]]
   [Purpose: #<<"
@@ -106,20 +112,20 @@ has level 0.
             (list (tree (list (list 5 1) 1)
                         (list (tree (list (list 7 2) 2) '())))))])
 (define-docs (annotate-depth/a depth t)
-       [Signature: {All X} Nat [Tree (list X Nat)] -> [Tree (list X Nat)]]
-       [Purpose: #<<"
+    [Signature: {All X} Nat [Tree (list X Nat)] -> [Tree (list X Nat)]]
+    [Purpose: #<<"
 Pairs each element in the @tree with its level, where the root of the
 tree has level @depth.
 "
-                 ]
-       [Accumulator: depth : #<<"
+              ]
+    [Accumulator: depth : #<<"
 The current depth of the tree - how many calls
 to @tree-children are needed to get from @t0 to @t.
 "
-                     ])
+                  ])
 (define (annotate-depth t0)
   (define (annotate-depth/a depth t)
-       (tree (list (tree-value t) depth)
+    (mk-tree (list (tree-value t) depth)
              (map (curry annotate-depth/a (add1 depth))
                   (tree-children t))))
   (annotate-depth/a 0 t0))

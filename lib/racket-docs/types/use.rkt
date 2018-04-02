@@ -129,7 +129,12 @@ Also expands the syntax.
        (gen-type-of #'(cons foo 4)) =>
        (gen-type-of #'(cons foo 4) `(cons ,foo.type ,Nat))])
   (define (gen-type-of stx)
-    (match-define (list stx+ explicit-type) (mt.type-of stx))
+    (match-define (list stx+ explicit-type*) (mt.type-of stx))
+    ; Fixes syntax property bug.
+    (define explicit-type
+      (if (and explicit-type* (procedure? (explicit-type*)))
+          (explicit-type*)
+          explicit-type*))
     (define type
       (or explicit-type
           (and (identifier? stx+)

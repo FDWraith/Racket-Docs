@@ -60,7 +60,7 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
        #`(begin
            (define entry
              (cond
-               [(boolean? (attribute head.args))
+               [(boolean? #'#,(attribute head.args))
                 (const-doc-entry
                  #'head.id
                  (list* (sig-doc-prop sig.out)
@@ -69,7 +69,7 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
                [else
                 (func-doc-entry
                  #'head.id
-                 (list (args-doc-prop (attribute head.args))
+                 (list (args-doc-prop #'#,(attribute head.args))
                        (sig-doc-prop sig.out)
                        (purpose-doc-prop purpose.out1)
                        extra-prop.out1 ...))]))

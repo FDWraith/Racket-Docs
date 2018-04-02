@@ -185,19 +185,20 @@ returns an error indicating this.
 "
               ])
 (define (get-app-error xs f)
-  (define (get-app-error/found xs found f)
-    (define (get-app-error/found* f)
-      (get-app-error/found xs found f))
-    (define f+ (f))
-    (cond
-      [(intersection? f+)
-       (get-rough-overload-error f (intersection-subs f+) xs)]
-      [(union? f+)
-       (ormap get-app-error/found* (union-subs f+))]
-      [(func? f+) (get-params-error xs (func-params f+))]
-      [(forall? f+) (get-app-error/found* (app-forall/found f+ found))]
-      [else (not-func f)]))
   (get-app-error/found xs (find-parameters xs) f))
+
+(define (get-app-error/found xs found f)
+  (define (get-app-error/found* f*)
+    (get-app-error/found xs found f*))
+  (define f+ (f))
+  (cond
+    [(intersection? f+)
+     (get-rough-overload-error f (intersection-subs f+) xs)]
+    [(union? f+)
+     (ormap get-app-error/found* (union-subs f+))]
+    [(func? f+) (get-params-error xs (func-params f+))]
+    [(forall? f+) (get-app-error/found* (app-forall/found f+ found))]
+    [else (not-func f)]))
 
 #;(define-docs (get-rough-overload-error fs xs)
     [Signature: [Listof Type] [Listof Type] -> [Maybe AppError]]
