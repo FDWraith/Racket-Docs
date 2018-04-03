@@ -16,6 +16,7 @@
 
 (require [for-syntax syntax/parse]
          syntax/parse
+         "gen.rkt"
          "../types/macrotypes/stx-utils.rkt")
 
 ; Matches an option before the cases in syntax-parse, syntax-parser, etc.
@@ -96,7 +97,8 @@
 ; Syntax -> String
 ; Converts a piece of syntax to a string.
 (define (syntax->string stx)
-  (local
+  (datum->string (syntax->datum stx)))
+  #;(local
     (; Syntax -> Boolean
      ; Determines if a Syntax is a constant
      (define (const? exp)
@@ -104,26 +106,15 @@
      ; Boolean -> String
      ; converts a boolean to a String
      (define (boolean->string b)
-       (if b "#true" "#false"))
-     ; Datum -> String
-     ; Converts a datum to a String
-     (define (stringify exp)
-       (cond
-         [(symbol? exp) (symbol->string exp)]
-         [(number? exp) (number->string exp)]
-         [(boolean? exp) (boolean->string exp)]
-         [(string? exp) exp]
-         [(list? exp)
-          (string-append "(" (string-join (map stringify exp) " ") ")")]
-         [else (error "datum cannot be turned to string")])))
+       (if b "#true" "#false")))
     (cond
-      [(const? stx) (stringify (syntax->datum stx))]
+      [(const? stx) (datum->string (syntax->datum stx))]
       [else
        (string-append "("
                       (string-join (map (compose stringify syntax->datum)
                                         (syntax->list stx))
                                    " ")
-                      ")")])))
+                      ")")]))
 
 ; Returns the first element in the list that matches pred
 ; Returns an empty list if no such element is found

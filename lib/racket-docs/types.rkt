@@ -10,6 +10,7 @@
          define-type/parsed
          assign-type/id
          assign-type/id/parsed
+         assign-type/id/parsed/src
          typed-datum
          typed-app
          begin-without-type-checking)
