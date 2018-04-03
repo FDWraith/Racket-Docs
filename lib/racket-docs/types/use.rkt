@@ -7,6 +7,7 @@
                      try-get-id-type]
          assign-type/id
          assign-type/id/parsed
+         assign-type/id/parsed/src
          define-typed-prim
          define-typed-prim/parsed)
 
@@ -129,7 +130,12 @@ Also expands the syntax.
        (gen-type-of #'(cons foo 4)) =>
        (gen-type-of #'(cons foo 4) `(cons ,foo.type ,Nat))])
   (define (gen-type-of stx)
-    (match-define (list stx+ explicit-type) (mt.type-of stx))
+    (match-define (list stx+ explicit-type*) (mt.type-of stx))
+    ; Fixes syntax property bug.
+    (define explicit-type
+      (if (and explicit-type* (procedure? (explicit-type*)))
+          (explicit-type*)
+          explicit-type*))
     (define type
       (or explicit-type
           (and (identifier? stx+)
@@ -151,15 +157,15 @@ if the identifier is specifically defined to refer to the value.
 #;(define-docs assign-type/id
     [Syntax: (assign-type/id val:id type)]
     [Semantics: #<<"
-Parses type - e.g. makes it an expression type if lowercase.
-Specifies that the identifier is an instance of type.
-If val is ever used in a situation where it should be another type,
+Parses @type - e.g. makes it an expression type if lowercase.
+Specifies that the identifier @val is an instance of type.
+If @val is ever used in a situation where it should be another type,
 the compiler will raise an error.
 "
                 ]
     [Examples:
-     (assign-type "Hello" String)
-     (assign-type 7 [Union Pos 0 (- Pos)])])
+     (let [(foo 1)] (assign-type foo String)) => (void)
+     (let [(bar 2)] (assign-type bar [Union Pos 0 (- Pos)])) => (void)])
 (define-syntax assign-type/id
   (syntax-parser
     [(_ val:id type)
@@ -169,20 +175,48 @@ the compiler will raise an error.
 #;(define-docs assign-type/id/parsed
     [Syntax: (assign-type/id/parsed val:id type)]
     [Semantics: #<<"
-Assumes type is already parsed - e.g. it can be a primitive type.
-Specifies that the identifier is an instance of type.
-If val is ever used in a situation where it should be another type,
+Assumes @type is already parsed - e.g. it can be a primitive type.
+Specifies that the identifier @val is an instance of type.
+If @val is ever used in a situation where it should be another type,
 the compiler will raise an error.
 "
                 ]
     [Examples:
-     (assign-type/id/parsed "Hello" String)
-     (assign-type/id/parsed 7 (union (list Pos 0 (- Pos))))])
+     (let [(foo 1)] (assign-type/id/parsed foo String)) => (void)
+     (let [(bar 2)]
+       (assign-type/id/parsed bar (union (list Pos 0 (- Pos))))) => (void)])
 (define-syntax assign-type/id/parsed
   (syntax-parser
     [(_ val:id type)
-     #'(begin-for-syntax
-         (add-id-type! #'val type))]))
+     #'(assign-type/id/parsed/src val type type)]))
+
+#;(define-docs assign-type/id/parsed/src
+    [Syntax: (assign-type/id/parsed/src val:id type src)]
+    [Semantics: #<<"
+Assumes @type is already parsed - e.g. it can be a primitive type.
+Specifies that the identifier is an instance of type.
+If @val is ever used in a situation where it should be another type,
+the compiler will raise an error.
+Uses @src when evaluating @type fails.
+"
+                ]
+    [Examples:
+     (let [(foo 1)]
+       (assign-type/id/parsed/src foo String foo)) => (void)
+     (let [(foo 1)
+           (bar 2)]
+       (assign-type/id/parsed/src bar (union (list Pos 0 (- Pos))) foo)) =>
+     (void)])
+(define-syntax assign-type/id/parsed/src
+  (syntax-parser
+    [(_ val:id type src)
+     (with-handlers
+         [(exn:fail? (λ (exn) (raise-syntax-error 'assign-type/id/parsed
+                                                  (exn-message exn)
+                                                  this-syntax
+                                                  #'src)))]
+       (add-id-type! #'val (eval-syntax #'type)))
+     #'(void)]))
 
 
 #;(define-docs define-typed-prim

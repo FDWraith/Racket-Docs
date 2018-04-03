@@ -1,2 +1,4 @@
-**/compiled
-**~
+*.rkt~
+*.scrbl~
+compiled
+.history

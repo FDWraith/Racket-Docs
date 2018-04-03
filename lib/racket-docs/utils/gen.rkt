@@ -93,9 +93,13 @@
 ; Converts the datum to a string which would be printed with display.
 (define (datum->string x)
   (cond
-    [(and (cons? x)
-          (equal? (first x) 'quote))
-     (format "'~a" (datum->string (second x)))]
+    [(cons? x)
+     (if (equal? (first x) 'quote)
+         (format "'~a" (datum->string (second x)))
+         (string-join (map datum->string x) " "
+                      #:before-first "("
+                      #:after-last ")"))]
+    [(string? x) (format "~v" x)]
     [else (format "~a" x)]))
 
 ; Nat -> String

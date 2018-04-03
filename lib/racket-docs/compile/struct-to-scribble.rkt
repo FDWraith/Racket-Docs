@@ -16,15 +16,15 @@
     (string-join (map compile-doc-entry (filter (mk-ent-type? type) docs))
                  "\n"))
   (define section-tags
-    (list "datadef"
-          "constdef"
-          "funcdef"
-          "macrodef"))
+    (list "datadefs"
+          "constants"
+          "functions"
+          "macros"))
   (define section-labels
     (list "Data Definitions"
-          "Constant Definitions"
-          "Function Definitions"
-          "Macro Definitions"))
+          "Constants"
+          "Functions"
+          "Macros"))
   (define section-types
     (list 'type 'const 'func 'macro))
   (define out-sections
@@ -41,9 +41,10 @@
   (define out-string (string-join out-sections "\n"))
   (define out (open-output-file path #:exists 'truncate))
   (display "#lang scribble/manual\n\n" out)
+  (display "@require[scribble/example]\n\n" out)
   (fprintf out "@title{~a Documentation}\n" (string-titlecase name))
   (for ([tag section-tags])
-    (fprintf out "@secref{~a}\n\n" tag))
+    (fprintf out "@secref{~a}\n" tag))
   (display "\n" out)
   (display out-string out)
   (close-output-port out))
@@ -157,19 +158,20 @@
   (define (compile-example ex)
     (cond
       [(plain-data-example? ex)
-       (format "@racketblock[~a] \n"
-               (syntax->string (plain-data-example-expr ex)))]
+       (format "@racketblock[~a]\n"
+               (wrap-safe-empty (syntax->string (plain-data-example-expr ex))))]
       [(interpret-data-example? ex)
-       (format "@racketblock[~a] can be interpreted as @racketblock[~a]. \n"
-               (syntax->string (interpret-data-example-expr ex))
-               (syntax->string (interpret-data-example-interpretation ex)))]
+       (format "@racketblock[~a (code:comment ~v)]\n"
+               (wrap-safe-empty (syntax->string (interpret-data-example-expr ex)))
+               (interpret-data-example-interpretation ex))]
       [(eval-example? ex)
-       (format "@racketblock[~a] evaluates to @racketblock[~a]. \n"
-               (syntax->string (eval-example-expr ex))
-               (syntax->string (eval-example-expected ex)))]))
+       (format "@examples[#:label #false (eval:alts ~a (eval:result (racket ~a) \"\" \"\"))]\n"
+               (wrap-safe-empty (syntax->string (eval-example-expr ex)))
+               (wrap-safe-empty (syntax->string (eval-example-expected ex))))]))
   (string-append
-   "@bold{Examples:} \n\n"
-   (string-join (map (λ (ex) (format "~a \n " (compile-example ex))) loe) "")))
+   "@bold{Examples:}\n"
+   (string-join (map compile-example loe) "\n"
+                #:after-last "\n")))
 
 
 ; Type -> String
@@ -179,6 +181,13 @@
   (wrap-safe (type-label x)))
 
 ; String -> String
-; Makes the string considered a single argument even if it has spaces.
+; Makes the string considered a single argument even if it's empty or has spaces.
 (define (wrap-safe x)
   (format "(code:line ~a)" x))
+
+; String -> String
+; Makes the string considered a single argument even if it's empty.
+(define (wrap-safe-empty x)
+  (cond
+    [(string=? x "") "code:space"]
+    [else x]))

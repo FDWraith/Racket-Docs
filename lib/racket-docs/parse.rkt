@@ -143,7 +143,7 @@ If documenting a function, also assignes the documented type.
   (syntax-parse stx
     #:datum-literals (Signature: Purpose: Syntax: Semantics:)
     [(_ head:head
-        [Signature: sig:type]
+        (~and full-sig [Signature: sig:type])
         [Purpose: purpose:raw-text]
         extra-prop:extra-doc-prop ...)
      (define sig+ (parse-class sig))
@@ -165,7 +165,7 @@ If documenting a function, also assignes the documented type.
                   extra-props+))]))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
      #`(begin
-         (assign-type/id/parsed head.id #,sig+)
+         (assign-type/id/parsed/src head.id #,sig+ full-sig)
          #,(tests-for-props extra-props+))]
     [(_ id:id
         [Syntax: stx-case ...]

@@ -135,7 +135,7 @@ but not (cons \"Z\" 7), (foo \"?\" \"E\"), or 'alskdj.
 #;(define-docs subtype-count-limit
     [Signature: Nat]
     [Purpose: "How many parts of a type will be tried as parameters."])
-(define subtype-count-limit 5)
+(define subtype-count-limit 3)
 
 #;(define-docs (Intersection/parsed xs)
     [Signature: Type -> Type]
@@ -274,10 +274,13 @@ returns #false for forall types.
   (cond
     [(func? x+) (func-out x+)]
     [(intersection? x+)
-     (λ () (intersection (filter-map try-func-out (intersection-subs x+))))]
+     (define sub-outs (filter-map try-func-out (intersection-subs x+)))
+     (and (cons? sub-outs)
+          (λ () (intersection sub-outs)))]
     [(union? x+)
      (define sub-outs (map try-func-out (union-subs x+)))
-     (and (not (member #false sub-outs))
+     (and (cons? sub-outs)
+          (not (member #false sub-outs))
           (λ () (union sub-outs)))]
     [else #false]))
 
@@ -348,8 +351,6 @@ to yield types which can then be related with @xs.
   (define all-xs (append-map find-parts xs))
   (list* Nothing/parsed
          Any/parsed
-         (Union/parsed all-xs)
-         (Intersection/parsed all-xs)
          all-xs))
 
 #;(define-docs (find-parts x)
