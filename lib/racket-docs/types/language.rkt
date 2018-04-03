@@ -17,7 +17,12 @@
          "builtin.rkt")
 
 #;(define-docs typed-top
-    )
+    [Syntax: (typed-top . x:id)]
+    [Semantics: #<<"
+Like @#%top, but allows @x to be unbound and gives it its proper type
+if it has the @allow-unbound? property.
+"
+                ])
 (define-syntax typed-top
   (syntax-parser
     [(_ . x)
@@ -126,29 +131,43 @@ and raises a syntax error if the body doesn't conform to the output.
                 ])
 (define-syntax typed-named-λ
   (syntax-parser
+    [(_ fid:id (prm:id ...) ((~datum local) [sub-defs ...] body ... out))
+     ; Splices local to allow type-checking
+     #'(typed-named-λ fid (prm ...) sub-defs ... body ... out)]
     [(_ fid:id (prm:id ...) body ... out)
-     (unless (skip-type-check? #'fid)
-       (define-values (_ type) (type-of #'fid))
-       (define param-types (try-func-params type))
-       (define out-type (try-func-out type))
-       (when param-types
-         (for [(param-stx (syntax->list #'(prm ...)))
-               (param-type param-types)]
-           (add-id-type! param-stx param-type))
-         ; Raises type errors (output type errors raised in (when out-type ...))
-         (for-each type-of
-                   (filter stx-expression?
-                           (syntax->list (allow-unbound #'(body ...))))))
-       (when out-type
-         (define-values (_ actual-out-type) (type-of (allow-unbound #'out)))
-         (unless (type<? actual-out-type out-type)
-           (raise-out-error (get-type-error actual-out-type out-type)
-                            #'fid
-                            #'out
-                            this-syntax))))
+     (type-check-λ #'fid #'(prm ...) #'(body ...) #'out this-syntax)
      #'(λ (prm ...)
          body ...
          out)]))
+
+(define-for-syntax (type-check-λ fid-stx prms-stx body-stx out-stx this-stx)
+  (with-syntax [(fid fid-stx)
+                ((prm ...) prms-stx)
+                ((body ...) body-stx)
+                (out out-stx)]
+    (unless (skip-type-check? #'fid)
+      (define-values (_ type) (type-of #'fid))
+      (define param-types (try-func-params type))
+      (define out-type (try-func-out type))
+      (when param-types
+        (for [(param-stx (syntax->list #'(prm ...)))
+              (param-type param-types)]
+          (add-id-type! param-stx param-type))
+        ; Assigns local definition types
+        (for-each (curryr local-expand 'top-level '())
+                  (filter (compose not stx-expression?)
+                          (syntax->list (allow-unbound #'(body ...)))))
+        ; Raises type errors (output type errors raised in (when out-type ...))
+        (for-each type-of
+                  (filter stx-expression?
+                          (syntax->list (allow-unbound #'(body ...))))))
+      (when out-type
+        (define-values (_ actual-out-type) (type-of (allow-unbound #'out)))
+        (unless (type<? actual-out-type out-type)
+          (raise-out-error (get-type-error actual-out-type out-type)
+                           #'fid
+                           #'out
+                           this-stx))))))
 
 #;(define-docs (raise-out-error err f-stx out-stx full-stx)
     [Signature: TypeError Syntax Syntax Syntax -> Syntax]
