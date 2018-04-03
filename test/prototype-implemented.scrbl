@@ -82,10 +82,16 @@ Appends the given @racket[str] to itself @racket[n] times.
 
 
 
+
+
+
 @defproc[#:link-target? #f (mk-tree [value (code:line X0)] [children (code:line [Listof [Tree X0]])]) (code:line [Tree X0])]{
 Creates a tree.
 
 }
+
+
+
 
 
 
@@ -103,6 +109,22 @@ has level 0.
 @examples[#:label #false (eval:alts (annotate-depth (tree 3 (list (tree 5 (list (tree 7 '())))))) (eval:result (racket (tree (list 3 0) (list (tree (list 5 1) (list (tree (list 7 2) '())))))) "" ""))]
 
 @examples[#:label #false (eval:alts (annotate-depth (tree (list 3 0) (list (tree (list 5 1) (list (tree (list 7 2) '())))))) (eval:result (racket (tree (list (list 3 0) 0) (list (tree (list (list 5 1) 1) (list (tree (list (list 7 2) 2) '())))))) "" ""))]
+
+
+
+
+
+
+@defproc[#:link-target? #f (annotate-depth/a [depth (code:line Nat)] [t (code:line [Tree (cons X0 (cons Nat '()))])]) (code:line [Tree (cons X0 (cons Nat '()))])]{
+Pairs each element in the @racket[tree] with its level, where the root of the
+tree has level @racket[depth].
+
+}
+
+
+@bold{Accumulator} - @racket[depth]:
+The current depth of the tree - how many calls
+to @racket[tree-children] are needed to get from @racket[t0] to @racket[t].
 
 
 
