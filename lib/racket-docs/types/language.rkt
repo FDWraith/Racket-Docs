@@ -154,7 +154,7 @@ and raises a syntax error if the body doesn't conform to the output.
               (param-type param-types)]
           (add-id-type! param-stx param-type))
         ; Assigns local definition types
-        (for-each (curryr local-expand 'top-level '())
+        (for-each (curryr local-expand 'top-level (list #'λ))
                   (filter (compose not stx-expression?)
                           (syntax->list (allow-unbound #'(body ...)))))
         ; Raises type errors (output type errors raised in (when out-type ...))

@@ -30,7 +30,7 @@ Leaves identifiers not starting with lowercase characters as-is
      #:with x+ (datum->syntax #'x (identifier-binding-symbol #'x) #'x #'x)
      (cond
        [(type-identifier? #'x) #'x]
-       [else #'(λ () 'x+)])]
+       [else #'(λ () x+ 'x+)])]
     [((~datum quote) x) #'(λ () ''x)]
     [(head param ...)
      #:with head+ (parse-type #'head)
