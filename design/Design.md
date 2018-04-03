@@ -15,17 +15,18 @@ racket-doc-expr = racket-expr ; Expressions From Racket
 				| doc-expr 
 				
 doc-expr = (define-docs head-expr
-			[Signature: type-expr]
+		 	[Signature: type-expr]
 			[Purpose: String]
-			data-extra-expr ...) ; No repeats of same type of doc
-	     | (define-data id
-	        [: type-expr] ...+
-	        [Interpretation: String]
-	        extra-doc-expr ...) ; No repeats of same type of doc
+			extra-doc-expr ...) ; No repeats of same type of doc
 	     | (define-docs id
 	        [Syntax: racket-expr]
 	        [Semantics: String]
 	        extra-doc-expr ...) ; No repeats of same type of doc
+	     | (define-data id
+	        [: - type-expr
+	           ...+] 
+	        [Interpretation: String]
+	        data-extra-expr ...) ; No repeats of same type of doc
 	        
 head-expr = id
 		  | (id id ...+)
@@ -65,13 +66,68 @@ provided-type-expr = Void
 				   | Nothing
 ```
 
+### define-data
+
+```
+(define-data name
+	[: - type-expr
+	   ...+]
+	[Intepretation: description]
+	extras ...)
+```
+
+Creates a documentation entry at phase 1, as well as a new type, with `name` and the given expression. The new data is defined in the scope of any documentation forms in the rest of the program. This entry compiles to a data definition, with `description` going below the data-definition, alongside any extra documentation props (`extras`).
+
+### define-docs
+
+**Function Definitions:**
+
+```
+(define-docs (name args ...)
+	[Signature: type(s) -> output-type]
+	[Purpose: description]
+	extras ...) ; No repeats of same type of doc
+```
+
+Creates a documentation entry at phase 1 with ``name`` and the given signature and purpose statement. Upon compiling, each of the `type(s)` will be paired with corresponding `arg` in  `args` in the scribble output. If there are missing types, they will be filled in with "???". The `description` will go below the function definition, alongside any extra documentation props (`extras`).
+
+**Constant Definitions:**
+
+```
+(define-docs name
+	[Signature: type]
+	[Purpose: description]
+	extras ...) ; No repeats of same type of doc
+```
+
+Creates a documentation entry at phase 1 with `name` and the given signature and purpose statement. When compiled, he `description` will go below the constant definition, alongside any extra documentation props (`extras`).
+
+**Macro Definitions:**
+
+```
+(define-docs name
+	[Syntax: stx]
+	[Semantics: description]
+	extras ...) ; No repeats of same type of doc
+```
+
+Creates a documentation entry at phase 1 with `name` and the given syntax-expression and semantics-statement. This documentation entry is compiled as a form of the shape `stx`. The `description` will go below the macro definition, alongside any extra documentation props (`extras`).
+
 ## Compiling Racket-Docs
 
-Compiling the completed *Racket-Docs* program can be done at the press of the compile docs button: ![](img/button.png) in the DrRacket GUI. Alternatively, the documentation can be compiled using the command `compile-docs` at the syntax-level.
+Compiling the completed *Racket-Docs* program can be done at the press of the compile docs button: ![](img/button.png) in the DrRacket GUI. Alternatively, the documentation can be compiled using the command `compile-docs` at the syntax-level (racket-docs forms are at phase 1).
 
 ```text
 (define-docs compile-docs
   [Syntax: (compile-docs (get-all-docs) path-expr)]
-  [Semantics: "Compiles all the documentation to the specified path (defaults to temp if no path-expr is given"])
+  [Semantics: "Compiles all the documentation to the specified path (defaults to temp if no path-expr is given)"])
+```
+
+This uses the `get-all-docs` command, which simply retrieves all the documentation entries  *so far* and returns a list of entries.
+
+```
+(define-docs get-all-docs
+  [Syntax: (get-all-docs)]
+  [Semantics: "Retrieves all defined documentation entries so far"])
 ```
 

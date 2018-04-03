@@ -65,6 +65,9 @@
     [(zero? n) ""]
     [(positive? n) (string-append str (string* str (- n 1)))]))
 
+(begin-for-syntax
+  (struct tree (value children)))
+
 (define-data [Tree X]
   [: (tree X [Listof [Tree X]])]
   [Interpretation: #<<"
