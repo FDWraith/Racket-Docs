@@ -85,6 +85,7 @@
     [((~datum define-syntax) x ...) #false]
     [((~datum define-values) x ...) #false]
     [((~datum define-syntaxes) x ...) #false]
+    [((~datum define-docs) x ...) #false]
     [_ #true]))
     
 

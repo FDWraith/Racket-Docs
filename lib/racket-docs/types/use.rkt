@@ -23,7 +23,8 @@
                      racket/string
                      racket/list]
          "builtin.rkt"
-         "struct.rkt")
+         "struct.rkt"
+         racket/block)
 
 (begin-for-syntax
   #;(define-docs cur-id-types
@@ -216,7 +217,7 @@ Uses @src when evaluating @type fails.
                                                   this-syntax
                                                   #'src)))]
        (add-id-type! #'val (eval-syntax #'type)))
-     #'(void)]))
+     #'(define-syntax foo type)])) ; define-syntax allows for binding arrows.
 
 
 #;(define-docs define-typed-prim

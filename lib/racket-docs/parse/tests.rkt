@@ -10,36 +10,34 @@
          [for-template "../utils.rkt"
                        rackunit
                        racket/base])
-    
+
 #;(define-docs (tests-for-props doc-props)
-    [Signature: [Listof DocProp] -> Syntax]
+    [Signature: [Listof DocProp] -> [Maybe Syntax]]
     [Purpose: #<<"
 If one of the properties provides examples,
 the result syntax will add the examples as tests.
-Otherwise, the result syntax will do nothing.
+Otherwise returns #false.
 "
               ])
 (define (tests-for-props doc-props)
   (define example-prop (findf (curry prop-has-type? 'examples) doc-props))
-  (if example-prop
-      (tests-for-examples (doc-prop-value example-prop))
-      #'(void)))
+  (and example-prop
+       (tests-for-examples (doc-prop-value example-prop))))
 
 #;(define-docs (tests-for-props1 doc-props)
-    [Signature: [Listof DocProp] -> Syntax]
+    [Signature: [Listof DocProp] -> [Maybe Syntax]]
     [Purpose: #<<"
 If one of the properties provides examples,
 the result syntax will add the examples as tests.
-Otherwise, the result syntax will do nothing.
+Otherwise returns #false.
 This adds tests in phase 1, using a different module (test1)
 so that they don't conflict with tests in phase 0.
 "
               ])
 (define (tests-for-props1 doc-props)
   (define example-prop (findf (curry prop-has-type? 'examples) doc-props))
-  (if example-prop
-      (tests-for-examples1 (doc-prop-value example-prop))
-      #'(void)))
+  (and example-prop
+       (tests-for-examples1 (doc-prop-value example-prop))))
 
 #;(define-docs (tests-for-examples examples)
     [Signature: [Listof Example] -> Syntax]
