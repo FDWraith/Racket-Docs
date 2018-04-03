@@ -779,3 +779,423 @@
                   (shorthand-chars (rest chars))
                   (cons (first chars) (shorthand-chars (rest chars))))]))]
     (list->string (shorthand-chars (string->list str)))))
+;; @ Tuesday, April 3rd, 2018 12:17:29am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+;; @ Tuesday, April 3rd, 2018 12:17:36am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (rest chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+;; @ Tuesday, April 3rd, 2018 12:17:52am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (rest chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:17:58am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (rest chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:18:27am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:19:01am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars str))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:19:58am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (shorthand-chars (string->list str))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:21:01am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] - [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:21:42am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:22:10am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signture: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:22:44am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examles: (shorthand "") => ""
+             (shorthand "world") => "wrld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:23:11am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examles: (shorthand "") => ""
+             (shorthand "world") => "warld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:23:34am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "warld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+;; @ Tuesday, April 3rd, 2018 12:24:24am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "warld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+(require test)
+;; @ Tuesday, April 3rd, 2018 12:24:52am -----------
+;; /Users/jakob/Dropbox/College/CS4620 HYOL/DocLang/Racket-Docs/design/racket-docs-code.rkt
+#lang racket-docs
+
+(define-docs VOWELS
+  [Signature: [Listof Char]]
+  [Purpose: "All the vowels in the alphabet, in lowercase."])
+(define VOWELS (list #\a #\e #\i #\o #\u #\y))
+
+(define-docs (shorthand str)
+  [Signature: String -> String]
+  [Purpose: "Removes vowels from @str."]
+  [Examples: (shorthand "") => ""
+             (shorthand "world") => "warld"
+             (shorthand "ApPle;") => "pPl;"])
+(define (shorthand str)
+  (local
+    [(define-docs (shorthand-chars chars)
+       [Signature: [Listof Char] -> [Listof Char]]
+       [Purpose: "Removes vowels from the character list."])
+     (define (shorthand-chars chars)
+       (cond [(empty? chars) '()]
+             [(cons? chars)
+              (if (member (char-downcase (first chars)) VOWELS)
+                  (shorthand-chars (rest chars))
+                  (cons (first chars) (shorthand-chars (rest chars))))]))]
+    (list->string (shorthand-chars (string->list str)))))
+(shorthand "Foo")
+(require 'test)

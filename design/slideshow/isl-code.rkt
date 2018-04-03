@@ -19,3 +19,5 @@
                   (shorthand-chars (rest chars))
                   (cons (first chars) (shorthand-chars (rest chars))))]))]
     (list->string (shorthand-chars (string->list str)))))
+
+(shorthand "Racket")
