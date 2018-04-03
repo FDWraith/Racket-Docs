@@ -56,7 +56,8 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           [Purpose: purpose:raw-text]
           extra-prop:extra-doc-prop ...)
        #:with stx #`#'#,stx
-       #:with run-tests (tests-for-props1 (parse-classes (extra-prop ...)))
+       #:with run-tests
+       (or (tests-for-props1 (parse-classes (extra-prop ...))) #'(void))
        #`(begin
            (define entry
              (macro-doc-entry
@@ -72,7 +73,8 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           [Semantics: semantics:raw-text]
           extra-prop:extra-doc-prop ...)
        #:with stx #`#'#,stx
-       #:with run-tests (tests-for-props1 (parse-classes (extra-prop ...)))
+       #:with run-tests
+       (or (tests-for-props1 (parse-classes (extra-prop ...))) #'(void))
        #'(begin
            (define entry
              (macro-doc-entry #'id
@@ -92,7 +94,8 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           extra-prop:extra-data-doc-prop ...)
        #:with stx #`#'#,stx
        #:with filled-type (fill-type-args (attribute head.args-pure) #'type.out)
-       #:with run-tests (tests-for-props1 (parse-classes (extra-prop ...)))
+       #:with run-tests
+       (or (tests-for-props1 (parse-classes (extra-prop ...))) #'(void))
        #'(begin
            (define entry
              (type-doc-entry
@@ -148,6 +151,7 @@ If documenting a function, also assignes the documented type.
         extra-prop:extra-doc-prop ...)
      (define sig+ (parse-class sig))
      (define extra-props+ (parse-classes (extra-prop ...)))
+     (define run-tests (tests-for-props extra-props+))
      (define entry
        (cond
          [(boolean? (attribute head.args))
@@ -164,21 +168,24 @@ If documenting a function, also assignes the documented type.
                   (purpose-doc-prop (parse-class purpose))
                   extra-props+))]))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
-     #`(begin
-         (assign-type/id/parsed/src head.id #,sig+ full-sig)
-         #,(tests-for-props extra-props+))]
+     (if run-tests
+         #`(begin
+             (assign-type/id/parsed/src head.id #,sig+ full-sig)
+             #,run-tests)
+         #`(assign-type/id/parsed/src head.id #,sig+ full-sig))]
     [(_ id:id
         [Syntax: stx-case ...]
         [Semantics: semantics:raw-text]
         extra-prop:extra-doc-prop ...)
      (define extra-props+ (parse-classes (extra-prop ...)))
+     (define run-tests (tests-for-props extra-props+))
      (define entry
        (macro-doc-entry #'id
                         (list* (syntax-doc-prop #'(stx-case ...))
                                (semantics-doc-prop (parse-class semantics))
                                extra-props+)))
      (add-doc! entry 'define-docs stx #'(extra-prop ...))
-     (tests-for-props extra-props+)]))
+     (or run-tests #'(void))]))
 
 #;(define-docs define-data
     [Syntax:
@@ -196,6 +203,7 @@ If documenting a function, also assignes the documented type.
         extra-prop:extra-data-doc-prop ...)
      (define type+ (parse-class type))
      (define extra-props+ (parse-classes (extra-prop ...)))
+     (define run-tests (tests-for-props extra-props+))
      (define filled-type (fill-type-args (attribute head.args-pure) type+))
      (define entry
        (type-doc-entry
@@ -204,9 +212,11 @@ If documenting a function, also assignes the documented type.
                (interpretation-doc-prop (parse-class interpretation))
                extra-props+)))
      (add-doc! entry 'define-data stx #'(extra-prop ...))
-     #`(begin
-         (define-type/parsed head #,type+)
-         #,(tests-for-props extra-props+))]))
+     (if run-tests
+         #`(begin
+             (define-type/parsed head #,type+)
+             #,run-tests)
+         #`(define-type/parsed head #,type+))]))
 
 #;(define-docs define-syntax/docs
     [Syntax:

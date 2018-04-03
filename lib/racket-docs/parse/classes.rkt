@@ -97,9 +97,12 @@ Examples:
                         (syntax-line #'expr)
                         (syntax-column #'expr)
                         (syntax-position #'expr)
-                        (+ (syntax-span #'expected)
-                           (- (syntax-position #'expected)
-                              (syntax-position #'expr)))))
+                        (and (syntax-span #'expected)
+                             (syntax-position #'expected)
+                             (syntax-position #'expr)
+                             (+ (syntax-span #'expected)
+                                (- (syntax-position #'expected)
+                                   (syntax-position #'expr))))))
    (eval-example #'expr #'expected #'this)]
   [x (raise-syntax-error 'example-parser #<<"
 Not a valid value or syntax example.

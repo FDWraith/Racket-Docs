@@ -112,20 +112,21 @@ has level 0.
             (list (tree (list (list 5 1) 1)
                         (list (tree (list (list 7 2) 2) '())))))])
 (define (annotate-depth t0)
-  (define-docs (annotate-depth/a depth t)
-    [Signature: {All X} Nat [Tree (list X Nat)] -> [Tree (list X Nat)]]
-    [Purpose: #<<"
+  (local
+    [(define-docs (annotate-depth/a depth t)
+       [Signature: {All X} Nat [Tree (list X Nat)] -> [Tree (list X Nat)]]
+       [Purpose: #<<"
 Pairs each element in the @tree with its level, where the root of the
 tree has level @depth.
 "
-              ]
-    [Accumulator: depth : #<<"
+                 ]
+       [Accumulator: depth : #<<"
 The current depth of the tree - how many calls
 to @tree-children are needed to get from @t0 to @t.
 "
-                  ])
-  (define (annotate-depth/a depth t)
-    (mk-tree (list (tree-value t) depth)
-             (map (curry annotate-depth/a (add1 depth))
-                  (tree-children t))))
-  (annotate-depth/a 0 t0))
+                     ])
+     (define (annotate-depth/a depth t)
+       (mk-tree (list (tree-value t) depth)
+                (map (curry annotate-depth/a (add1 depth))
+                     (tree-children t))))]
+    (annotate-depth/a 0 t0)))

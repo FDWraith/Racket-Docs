@@ -18,9 +18,15 @@
          third
          fourth
          fifth
+         empty?
+         cons?
          cons
          append
          string-append
+         string->list
+         list->string
+         member
+         char-downcase
          list)
 
 (define-typed-prim +
@@ -66,6 +72,12 @@
 (define-typed-prim fifth
   [Forall X [-> (cons Any (cons Any (cons Any (cons Any (cons X Any))))) X]])
 
+(define-typed-prim empty?
+  [-> [Listof Any] Bool])
+
+(define-typed-prim cons?
+  [-> [Listof Any] Bool])
+
 (define-typed-prim cons
   [Forall X [-> X [Listof X] [Listof X]]])
 
@@ -74,6 +86,18 @@
 
 (define-typed-prim string-append
   [-> String String String])
+
+(define-typed-prim string->list
+  [-> String [Listof Char]])
+
+(define-typed-prim list->string
+  [-> [Listof Char] String])
+
+(define-typed-prim member
+  [Forall X [-> X [Listof X] [Maybe [Listof X]]]])
+
+(define-typed-prim char-downcase
+  [-> Char Char])
 
 (define syntax-scope
   (make-syntax-delta-introducer #'cons #false))
