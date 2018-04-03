@@ -44,8 +44,7 @@
   (display "@require[scribble/example]\n\n" out)
   (fprintf out "@title{~a Documentation}\n" (string-titlecase name))
   (for ([tag section-tags])
-    (fprintf out "@secref{~a}\n" tag))
-  (display "\n" out)
+    (fprintf out "@secref{~a}\n\n" tag))
   (display out-string out)
   (close-output-port out))
 

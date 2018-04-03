@@ -6,15 +6,10 @@
     [Interpretation: "A data definition created in phase 1."]
     [Examples: 5])
 
-  #;(define-data [Either X Y]
+  (define-data [Either X Y]
     [: - X
        - Y]
     [Interpretation: "A data definition constructor."]))
-
-(define-data [Either X Y]
-  [: - 'x
-     - 'y]
-  [Interpretation: "A data definition constructor."])
 
 (define-data String/False
   [: - String
@@ -44,7 +39,7 @@
               (list String Int Nat)]
   [Purpose: "Combines 2 tuples"])
 (define (+tuple x y)
-  (list (string-append (second x) (first y))
+  #;(list (string-append (second x) (first y))
           (+ (first x) (second y))
           (+ (third x) (third y)))
   (list (string-append (first x) (first y))
@@ -60,8 +55,8 @@
   [Syntax: (provide identifier ...)]
   [Semantics: "Exports @identifier, so other modules can import it."])
 
-#;(begin-for-syntax
-  #;(define-docs phase1-val
+(begin-for-syntax
+  (define-docs phase1-val
     [Signature: Int]
     [Purpose: "A value which could be used by macros"]
     [Examples: phase1-val => 5])

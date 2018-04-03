@@ -3,8 +3,8 @@
 (provide parse-type
          type-identifier?)
 
-(require syntax/parse
-         "../utils/syntax.rkt"
+(require "../utils/syntax.rkt"
+         syntax/parse
          [for-template racket/base])
 
 #;(define-docs parse-type
@@ -28,9 +28,10 @@ Leaves identifiers not starting with lowercase characters as-is
   (syntax-parse (remove-app (local-expand stx 'expression #false))
     [x:id
      #:with x+ (datum->syntax #'x (identifier-binding-symbol #'x) #'x #'x)
+     #:with x- (fix-id-ref #'x)
      (cond
        [(type-identifier? #'x) #'x]
-       [else #'(λ () x+ 'x+)])]
+       [else #'(λ () x- 'x+)])]
     [((~datum quote) x) #'(λ () ''x)]
     [(head param ...)
      #:with head+ (parse-type #'head)
@@ -39,6 +40,17 @@ Leaves identifiers not starting with lowercase characters as-is
        [(expr-stx? #'head) #'(λ () (list head+ param+ ...))]
        [else #'(head+ param+ ...)])]
     [x #'(λ () x)])) ; Numbers, booleans, etc. All expression types.
+
+(define (fix-id-ref id)
+  (define str (symbol->string (syntax-e id)))
+  (if (and (string-suffix? str "1")
+           (identifier-binding-symbol id)
+           (string-suffix? (symbol->string (identifier-binding-symbol id))
+                           "1.0"))
+      ; Refers to a struct - for some reason the identifier gets messed up.
+      ; Can't refer to the actual struct either, because hygene is also broken.
+      (datum->syntax #'foo #'(void) id id)
+      id))
 
 #;(define-docs (remove-app stx)
     [Signature: Syntax -> Syntax]

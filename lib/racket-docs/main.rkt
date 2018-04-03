@@ -8,11 +8,13 @@
                      #%datum
                      #%app
                      define
+                     struct
                      #;[all-from-out "types/builtin-instances.rkt"]]
          [rename-out (typed-top #%top)
                      (typed-datum #%datum)
                      (typed-app #%app)
-                     (typed-define define)]
+                     (typed-define define)
+                     (typed-struct struct)]
          
          [for-syntax define-docs
                      define-data

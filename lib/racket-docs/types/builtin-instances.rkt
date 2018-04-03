@@ -27,6 +27,8 @@
          list->string
          member
          char-downcase
+         string->symbol
+         symbol->string
          list)
 
 (define-typed-prim +
@@ -99,8 +101,11 @@
 (define-typed-prim char-downcase
   [-> Char Char])
 
-(define syntax-scope
-  (make-syntax-delta-introducer #'cons #false))
+(define-typed-prim string->symbol
+  [-> String Symbol])
+
+(define-typed-prim symbol->string
+  [-> Symbol String])
 
 (define-syntax list
   (syntax-parser

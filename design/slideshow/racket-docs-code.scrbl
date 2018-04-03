@@ -4,13 +4,20 @@
 
 @title{Racket-Docs-Code Documentation}
 @secref{datadefs}
+
 @secref{constants}
+
 @secref{functions}
+
 @secref{macros}
 
 @section[#:tag "datadefs"]{Data Definitions}
-@defthing[#:kind "data defintion" #:link-target? #f Foo Type #:value (code:line <Error!>)]{
-Wor
+@defthing[#:kind "data defintion" #:link-target? #f Sexpr Type #:value (code:line String
+Symbol
+Num
+'()
+(cons Sexpr Sexpr))]{
+An S-Expression.
 }
 
 

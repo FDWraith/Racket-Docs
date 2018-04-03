@@ -65,6 +65,7 @@
     [(zero? n) ""]
     [(positive? n) (string-append str (string* str (- n 1)))]))
 
+(struct tree (value children) #:transparent)
 (define-data [Tree X]
   [: (tree X [Listof [Tree X]])]
   [Interpretation: #<<"
@@ -78,7 +79,6 @@ each @value in @children of @children is a grandchild node, and so on.
    (tree 12 '())
    (tree "A" (list (tree "B" '()) (tree "C" (list (tree "D" '())))))
    (tree (tree "Complex" '()) (list (tree "Tree" '())))])
-(struct tree (value children) #:transparent)
 
 (define-docs (mk-tree value children)
   [Signature: {All X} X [Listof [Tree X]] -> [Tree X]]

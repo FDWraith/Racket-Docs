@@ -14,6 +14,7 @@
                      Decimal
                      Char
                      String
+                     Symbol
                      <Error!>
 
                      ; Built-In Non-Primitive Types
@@ -90,6 +91,7 @@ of the type parameter @X in @F.
 (define-type/primitive Decimal)
 (define-type/primitive Char)
 (define-type/primitive String)
+(define-type/primitive Symbol)
 (define-type/primitive <Error!>)
 
 (define-type Any [Intersection])
