@@ -24,3 +24,11 @@
   [Signature: Nat]
   [Purpose: "Describes the state of the world"])
 (define WORLD_STATE 20)
+
+
+(begin-for-syntax
+  (define-docs append
+    [Syntax: (append id:id ...+)]
+    [Semantics: "Appends several things together"])
+  (define append append))
+

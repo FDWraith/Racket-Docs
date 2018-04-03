@@ -143,11 +143,14 @@
   (define sem-prop (extract (mk-prop? 'desc) props))
   (define stx (syntax->string (doc-prop-value stx-prop)))
   (define sem (doc-prop-value sem-prop))
-  (string-append "@defthing[#:kind \"Syntax\" #:link-target? #f "
-                 name
-                 "]{\n"
+  (define example-prop (extract (mk-prop? 'examples) props))
+  (define examples (if (empty? example-prop) ""
+                       (compile-doc-examples (doc-prop-value example-prop))))
+  (string-append "@defform[#:link-target? #f #:id "
+                 name " " stx " ]{\n"
                  sem 
-                 "\n}\n"))
+                 "\n}\n\n"
+                 examples "\n"))
 
 ; Compiles Examples
 (define (compile-doc-examples loe)
