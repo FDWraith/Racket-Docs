@@ -56,16 +56,25 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           [Purpose: purpose:raw-text]
           extra-prop:extra-doc-prop ...)
        #:with stx #`#'#,stx
+       #:with args (or (attribute head.args) #'#false)
        #:with run-tests
        (or (tests-for-props1 (parse-classes (extra-prop ...))) #'(void))
        #`(begin
            (define entry
-             (macro-doc-entry
-              #'head.id
-              (list (args-doc-prop #'#,(attribute head.args))
-                    (sig-doc-prop sig.out)
-                    (purpose-doc-prop purpose.out1)
-                    extra-prop.out1 ...)))
+             (cond
+               [(boolean? args)
+                (const-doc-entry
+                 #'head.id
+                 (list (sig-doc-prop sig.out)
+                       (purpose-doc-prop purpose.out1)
+                       extra-prop.out1 ...))]
+               [else
+                (func-doc-entry
+                 #'head.id
+                 (list (args-doc-prop #'args)
+                       (sig-doc-prop sig.out)
+                       (purpose-doc-prop purpose.out1)
+                       extra-prop.out1 ...))]))
            (add-doc! entry 'define-docs stx #'(extra-prop ...))
            run-tests)]
       [(_ id:id

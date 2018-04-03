@@ -25,7 +25,9 @@
 
 (define-docs (+int x y)
   [Signature: StxDocumentedInt Int -> Int]
-  [Purpose: "Adds 2 integers."])
+  [Purpose: "Adds 2 integers."]
+  [Accumulator: x : "Not actually an accumulator."]
+  [Effects: "No effects"])
 (define +int +)
 
 (define-docs (+list x y)
@@ -48,17 +50,18 @@
 
 (define-docs (+list-5 x y)
   [Signature: [Listof String] [Listof 5] -> [Listof String]]
-  [Purpose: "Combines 2 lists"])
+  [Purpose: "Combines 2 lists"]
+  [Generative: "This isn't generative."])
 (define +list-5 append)
 
-#;(define-docs provide
+(define-docs provide
   [Syntax: (provide identifier ...)]
-  [Semantics: "Exports @identifier, so other modules can import it."])
+  [Semantics: "Exports @identifier, so other @module@s can @require it."])
 
 (begin-for-syntax
   (define-docs phase1-val
     [Signature: Int]
-    [Purpose: "A value which could be used by macros"]
+    [Purpose: "A value which could be used by macros."]
     [Examples: phase1-val => 5])
   (define phase1-val 5)
   

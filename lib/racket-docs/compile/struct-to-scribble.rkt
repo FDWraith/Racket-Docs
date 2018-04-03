@@ -87,8 +87,17 @@
   (define type (safe-type-label (doc-prop-value type-prop)))
   (define desc (doc-prop-value desc-prop))
   (define example-prop (extract (mk-prop? 'examples) props))
+  (define accumulator-prop (extract (mk-prop? 'accumulator) props))
+  (define generative-prop (extract (mk-prop? 'generative) props))
+  (define effects-prop (extract (mk-prop? 'effects) props))
   (define examples (if (empty? example-prop) ""
                        (compile-doc-examples (doc-prop-value example-prop))))
+  (define accumulator (if (empty? accumulator-prop) ""
+                          (compile-doc-accumulator (doc-prop-value accumulator-prop))))
+  (define generative (if (empty? generative-prop) ""
+                         (compile-doc-generative (doc-prop-value generative-prop))))
+  (define effects (if (empty? effects-prop) ""
+                      (compile-doc-effects (doc-prop-value effects-prop))))
   (string-append "@defthing[#:kind \"constant\" #:link-target? #f "
                  name
                  " "
@@ -96,7 +105,10 @@
                  "]{\n"
                  desc
                  "\n}\n\n"
-                 examples "\n"))
+                 examples "\n"
+                 accumulator "\n"
+                 generative "\n"
+                 effects "\n"))
 
 ; Compiles Functions to valid Scribble line(s)
 (define (compile-doc-func ent)
@@ -125,15 +137,27 @@
   (define desc-prop (extract (mk-prop? 'desc) props))
   (define purp (doc-prop-value desc-prop))
   (define example-prop (extract (mk-prop? 'examples) props))
+  (define accumulator-prop (extract (mk-prop? 'accumulator) props))
+  (define generative-prop (extract (mk-prop? 'generative) props))
+  (define effects-prop (extract (mk-prop? 'effects) props))
   (define examples (if (empty? example-prop) ""
                        (compile-doc-examples (doc-prop-value example-prop))))
+  (define accumulator (if (empty? accumulator-prop) ""
+                          (compile-doc-accumulator (doc-prop-value accumulator-prop))))
+  (define generative (if (empty? generative-prop) ""
+                         (compile-doc-generative (doc-prop-value generative-prop))))
+  (define effects (if (empty? effects-prop) ""
+                      (compile-doc-effects (doc-prop-value effects-prop))))
   (string-append "@defproc[#:link-target? #f ("
                  name " "
                  args-string ") "
                  output "]{\n"
                  purp "\n"
                  "\n}\n\n"
-                 examples "\n"))
+                 examples "\n"
+                 accumulator "\n"
+                 generative "\n"
+                 effects "\n"))
 
 ; Compiles Macros to valid Scribble line(s)
 (define (compile-doc-macro ent)
@@ -144,13 +168,25 @@
   (define stx (syntax->string (doc-prop-value stx-prop)))
   (define sem (doc-prop-value sem-prop))
   (define example-prop (extract (mk-prop? 'examples) props))
+  (define accumulator-prop (extract (mk-prop? 'accumulator) props))
+  (define generative-prop (extract (mk-prop? 'generative) props))
+  (define effects-prop (extract (mk-prop? 'effects) props))
   (define examples (if (empty? example-prop) ""
                        (compile-doc-examples (doc-prop-value example-prop))))
+  (define accumulator (if (empty? accumulator-prop) ""
+                          (compile-doc-accumulator (doc-prop-value accumulator-prop))))
+  (define generative (if (empty? generative-prop) ""
+                         (compile-doc-generative (doc-prop-value generative-prop))))
+  (define effects (if (empty? effects-prop) ""
+                      (compile-doc-effects (doc-prop-value effects-prop))))
   (string-append "@defform[#:link-target? #f #:id "
                  name " " stx " ]{\n"
                  sem 
                  "\n}\n\n"
-                 examples "\n"))
+                 examples "\n"
+                 accumulator "\n"
+                 generative "\n"
+                 effects "\n"))
 
 ; Compiles Examples
 (define (compile-doc-examples loe)
@@ -172,6 +208,19 @@
    (string-join (map compile-example loe) "\n"
                 #:after-last "\n")))
 
+; Compiles Accumulator Statement
+(define (compile-doc-accumulator acc)
+  (format "@bold{Accumulator} - @racket[~a]:\n~a"
+          (syntax->string (accumulator-id acc))
+          (accumulator-desc acc)))
+
+; Compiles Generative Statement
+(define (compile-doc-generative gen-desc)
+  (format "@bold{Generative:}\n~a" gen-desc))
+
+; Compiles Effects Statement
+(define (compile-doc-effects effects-desc)
+  (format "@bold{Effects:}\n~a" effects-desc))
 
 ; Type -> String
 ; The label of a type, wrapped in (code:line ...),
