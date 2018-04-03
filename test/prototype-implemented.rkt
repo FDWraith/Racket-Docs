@@ -65,7 +65,7 @@
     [(zero? n) ""]
     [(positive? n) (string-append str (string* str (- n 1)))]))
 
-(struct tree (value children) #:transparent)
+(struct tree [value children] #:transparent)
 (define-data [Tree X]
   [: (tree X [Listof [Tree X]])]
   [Interpretation: #<<"

@@ -27,8 +27,8 @@
 
 (begin-for-syntax
   #;(define-docs cur-entries
-    [Signature: [Listof doc-entry]]
-    [Purpose: "The documentation entries parsed so far, in reverse order"])
+      [Signature: [Listof doc-entry]]
+      [Purpose: "The documentation entries parsed so far, in reverse order"])
   (define cur-entries '())
 
   #;(define-docs (add-doc! entry caller stx shared-stx)
@@ -60,20 +60,12 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
        (or (tests-for-props1 (parse-classes (extra-prop ...))) #'(void))
        #`(begin
            (define entry
-             (cond
-               [(boolean? #'#,(attribute head.args))
-                (const-doc-entry
-                 #'head.id
-                 (list* (sig-doc-prop sig.out)
-                        (purpose-doc-prop purpose.out1)
-                        extra-prop.out1 ...))]
-               [else
-                (func-doc-entry
-                 #'head.id
-                 (list (args-doc-prop #'#,(attribute head.args))
-                       (sig-doc-prop sig.out)
-                       (purpose-doc-prop purpose.out1)
-                       extra-prop.out1 ...))]))
+             (macro-doc-entry
+              #'head.id
+              (list (args-doc-prop #'#,(attribute head.args))
+                    (sig-doc-prop sig.out)
+                    (purpose-doc-prop purpose.out1)
+                    extra-prop.out1 ...)))
            (add-doc! entry 'define-docs stx #'(extra-prop ...))
            run-tests)]
       [(_ id:id
@@ -125,7 +117,7 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
 Returns all of the documentation entries as structures,
 in the order they were defined in the file.
 "
-                  ])
+                ])
   (define (get-all-docs)
     (reverse cur-entries))
 
@@ -136,20 +128,20 @@ in the order they were defined in the file.
     (null? (get-all-docs))))
 
 #;(define-docs define-docs
-  [Syntax:
-   (define-docs head:head
-     [Signature: sig:type]
-     [Purpose: purpose:raw-text]
-     extra-prop:extra-doc-prop ...)
-   (define-docs id:id
-     [Syntax: stx-case ...]
-     [Semantics: semantics:raw-text]
-     extra-prop:extra-doc-prop ...)]
-  [Semantics: #<<"
+    [Syntax:
+     (define-docs head:head
+       [Signature: sig:type]
+       [Purpose: purpose:raw-text]
+       extra-prop:extra-doc-prop ...)
+     (define-docs id:id
+       [Syntax: stx-case ...]
+       [Semantics: semantics:raw-text]
+       extra-prop:extra-doc-prop ...)]
+    [Semantics: #<<"
 Documents a function, constant or macro.
 If documenting a function, also assignes the documented type.
 "
-              ])
+                ])
 (define-syntax (define-docs stx)
   (syntax-parse stx
     #:datum-literals (Signature: Purpose: Syntax: Semantics:)
@@ -196,12 +188,12 @@ If documenting a function, also assignes the documented type.
      (or run-tests #'(void))]))
 
 #;(define-docs define-data
-  [Syntax:
-   (define-data head:head
-     [: type:union-type]
-     [Interpretation: interpretation:raw-text]
-     extra-prop:extra-data-doc-prop ...)]
-  [Semantics: "Documents a data definition, and creates a type for it."])
+    [Syntax:
+     (define-data head:head
+       [: type:union-type]
+       [Interpretation: interpretation:raw-text]
+       extra-prop:extra-data-doc-prop ...)]
+    [Semantics: "Documents a data definition, and creates a type for it."])
 (define-syntax (define-data stx)
   (syntax-parse stx
     #:datum-literals (: Interpretation:)
@@ -227,45 +219,45 @@ If documenting a function, also assignes the documented type.
          #`(define-type/parsed head #,type+))]))
 
 #;(define-docs define-syntax/docs
-  [Syntax:
-   (define-syntax/docs id:id
-     [Semantics: semantics:raw-text]
-     extra-prop:extra-doc-prop ...
-     option:stxparse-option ...
-     [((~var case-temp-head (temp-matches #'id)) case-temp-part ...)
-      case-body ...+] ...+)
-   (define-syntax/docs (id:id stx:id)
-     [Semantics: semantics:raw-text]
-     extra-prop:extra-doc-prop ...
-     option:stxparse-option ...
-     [(case-temp-head case-temp-part ...)
-      case-body ...+] ...+)]
-  [Semantics: #<<"
+    [Syntax:
+     (define-syntax/docs id:id
+       [Semantics: semantics:raw-text]
+       extra-prop:extra-doc-prop ...
+       option:stxparse-option ...
+       [((~var case-temp-head (temp-matches #'id)) case-temp-part ...)
+        case-body ...+] ...+)
+     (define-syntax/docs (id:id stx:id)
+       [Semantics: semantics:raw-text]
+       extra-prop:extra-doc-prop ...
+       option:stxparse-option ...
+       [(case-temp-head case-temp-part ...)
+        case-body ...+] ...+)]
+    [Semantics: #<<"
 Combines define-syntax, syntax-parse, and define-docs.
 Automatically generates SYNTAX documentation from syntax-parse clauses.
 "
-              ]
-  [Examples:
-   (define-syntax/docs foo
-     [Semantics: "foo"]
-     [Examples:
-      (foo bar) => 'baz
-      (foo (bar 4)) => 4]
-     #:datum-literals (bar)
-     [(_ bar) #''baz]
-     [(_ (bar x:nat)) #'x]) =>
-   (begin
-     (define-docs foo
-       [Syntax: (foo bar)
-                (foo (bar x:nat))]
+                ]
+    [Examples:
+     (define-syntax/docs foo
        [Semantics: "foo"]
        [Examples:
         (foo bar) => 'baz
-        (foo (bar 4)) => 4])
-     (define-syntax foo
-       (syntax-parse
-           #:datum-literals (bar)
-         [(_ bar) #''baz]
-         [(_ (bar x:nat)) #'x])))])
+        (foo (bar 4)) => 4]
+       #:datum-literals (bar)
+       [(_ bar) #''baz]
+       [(_ (bar x:nat)) #'x]) =>
+                              (begin
+                                (define-docs foo
+                                  [Syntax: (foo bar)
+                                           (foo (bar x:nat))]
+                                  [Semantics: "foo"]
+                                  [Examples:
+                                   (foo bar) => 'baz
+                                   (foo (bar 4)) => 4])
+                                (define-syntax foo
+                                  (syntax-parse
+                                      #:datum-literals (bar)
+                                    [(_ bar) #''baz]
+                                    [(_ (bar x:nat)) #'x])))])
 (define-syntax define-syntax/docs
   (gen-define-syntax/docs #'define-docs))
