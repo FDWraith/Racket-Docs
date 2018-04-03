@@ -99,7 +99,7 @@ of the type parameter @X in @F.
 (define-type Int [Union Nat NegInt])
 (define-type Num [Union Int Decimal])
 (define-type [Listof X]
-  [Intersection '() (cons X [Listof X])]) ; Should be Union, but weak typing
+  [Intersection '() (cons X [Listof X])]) ; Technically a Union, but weak typing
 (define-type [Maybe X]
-  [Intersection #false X]) ; Should be Union, but weak typing
+  [Intersection #false X]) ; Technically a Union, but weak typing
 (define-type List [Listof Any])

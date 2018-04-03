@@ -16,7 +16,6 @@
 
 (require [for-syntax syntax/parse]
          syntax/parse
-         "gen.rkt"
          "../types/macrotypes/stx-utils.rkt")
 
 ; Matches an option before the cases in syntax-parse, syntax-parser, etc.
@@ -87,7 +86,6 @@
     [((~datum define-syntaxes) x ...) #false]
     [((~datum define-docs) x ...) #false]
     [_ #true]))
-    
 
 ; Identifier -> [Stx String]
 ; Converts an identifier to a string of its name.
@@ -99,23 +97,20 @@
 ; Converts a piece of syntax to a string.
 (define (syntax->string stx)
   (datum->string (syntax->datum stx)))
-  #;(local
-    (; Syntax -> Boolean
-     ; Determines if a Syntax is a constant
-     (define (const? exp)
-       (not (list? (syntax->datum exp))))
-     ; Boolean -> String
-     ; converts a boolean to a String
-     (define (boolean->string b)
-       (if b "#true" "#false")))
-    (cond
-      [(const? stx) (datum->string (syntax->datum stx))]
-      [else
-       (string-append "("
-                      (string-join (map (compose stringify syntax->datum)
-                                        (syntax->list stx))
-                                   " ")
-                      ")")]))
+
+; Any -> String
+; Converts the datum to a string which would be printed with display.
+; (Copied from gen.rkt, because importing gave phase linking errors).
+(define (datum->string x)
+  (cond
+    [(cons? x)
+     (if (equal? (first x) 'quote)
+         (format "'~a" (datum->string (second x)))
+         (string-join (map datum->string x) " "
+                      #:before-first "("
+                      #:after-last ")"))]
+    [(string? x) (format "~v" x)]
+    [else (format "~a" x)]))
 
 ; Returns the first element in the list that matches pred
 ; Returns an empty list if no such element is found

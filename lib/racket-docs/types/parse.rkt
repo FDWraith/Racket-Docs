@@ -4,7 +4,7 @@
          type-identifier?)
 
 (require syntax/parse
-         "../utils.rkt"
+         "../utils/syntax.rkt"
          [for-template racket/base])
 
 #;(define-docs parse-type

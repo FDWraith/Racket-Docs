@@ -217,7 +217,8 @@ Uses @src when evaluating @type fails.
                                                   this-syntax
                                                   #'src)))]
        (add-id-type! #'val (eval-syntax #'type)))
-     #'(define-syntax foo type)])) ; define-syntax allows for binding arrows.
+     ; define-syntax allows for usage in local and binding arrows.
+     #'(define-syntax foo type)]))
 
 
 #;(define-docs define-typed-prim
