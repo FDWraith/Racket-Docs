@@ -112,4 +112,5 @@
     [(_) #''()]
     [(_ x xs ...)
      (datum->syntax this-syntax
-                    `(,#'cons ,#'x ,#'(list xs ...)))]))
+                    `(,#'cons ,#'x ,#'(list xs ...))
+                    this-syntax)]))

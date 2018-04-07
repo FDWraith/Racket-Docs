@@ -14,7 +14,7 @@ How many layers of sub-types will be used in a type summary or label,
 before ... is used. Prevents unnecessary or infinite recursion.
 "
               ])
-(define summary-recur-limit 4)
+(define summary-recur-limit 8)
 
 #;(define-docs (type-summary type)
     [Signature: Type -> String]

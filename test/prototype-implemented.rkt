@@ -66,11 +66,9 @@
     [(positive? n) (string-append str (string* str (- n 1)))]))
 
 (struct tree [value children] #:transparent)
-#;(define-syntax (tree value children)
-  (list 'tree value children))
 
 (define-data [Tree X]
-  [: (list 'tree X [Listof [Tree X]])]
+  [: (tree X [Listof [Tree X]])]
   [Interpretation: #<<"
 A tree.
 @value refers to the top node.
@@ -117,7 +115,7 @@ has level 0.
 (define (annotate-depth t0)
   (local
     [(define-docs (annotate-depth/a depth t)
-       [Signature: {All X} Nat [Tree (list X Nat)] -> [Tree (list X Nat)]]
+       [Signature: {All X} Nat [Tree X] -> [Tree (list X Nat)]]
        [Purpose: #<<"
 Pairs each element in the @tree with its level, where the root of the
 tree has level @depth.
@@ -129,7 +127,7 @@ to @tree-children are needed to get from @t0 to @t.
 "
                      ])
      (define (annotate-depth/a depth t)
-       (mk-tree (list (tree-value t) depth)
+       (mk-tree (cons (tree-value t) (cons depth '()))
                 (map (curry annotate-depth/a (add1 depth))
                      (tree-children t))))]
     (annotate-depth/a 0 t0)))

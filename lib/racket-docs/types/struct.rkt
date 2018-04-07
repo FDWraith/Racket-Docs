@@ -262,8 +262,7 @@ and the # of parameters is the # of parameters in the smallest function.
     [Signature: Type -> [Maybe Type]]
     [Purpose: #<<"
 @f's output if it's function type, otherwise #false.
-Assumes parameterized types are given parameters -
-returns #false for forall types.
+Applies Nothing and Any to forall types.
 "
               ]
     [Examples:
@@ -282,6 +281,7 @@ returns #false for forall types.
      (and (cons? sub-outs)
           (not (member #false sub-outs))
           (λ () (union sub-outs)))]
+    [(forall? x+) (try-func-out ((forall-get-type x+) Any/parsed))]
     [else #false]))
 
 #;(define-docs (unparameterize f xs)

@@ -97,8 +97,14 @@ Gives up and returns true after @limit nested comparisons.
     (un-type<?/limit (x*) y (sub1 limit)))
   (cond
     [(zero? limit) #true]
-    [(union? x) (andmap un-type<y? (union-subs x))]
-    [(intersection? y) (andmap un-type>x? (intersection-subs y))]
+    [(union? x)
+     ; Uses ormap because of weak typing - would use andmap if strict.
+     (or (empty? (union-subs x))
+         (ormap un-type<y? (union-subs x)))]
+    [(intersection? y)
+     ; Uses ormap because of weak typing - would use andmap if strict.
+     (or (empty? (intersection-subs y))
+         (ormap un-type>x? (intersection-subs y)))]
     [(intersection? x) (ormap un-type<y? (intersection-subs x))]
     [(union? y) (ormap un-type>x? (union-subs y))]
     [(and (primitive? x) (primitive? y)) (equal? x y)]

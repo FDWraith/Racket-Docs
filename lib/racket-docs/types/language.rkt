@@ -183,22 +183,6 @@ and raises a syntax error if the body doesn't conform to the output.
                            this-syntax))
         out+-stx])]))
 
-#;(define-docs typed-struct
-    [Syntax: (typed-struct name prop ...)]
-    [Semantics: #<<"
-Like struct, but defines a phase 1 identifier so it can be referenced by types.
-At least in theory - in practice, a bug makes types resolve to a mangled
-identifier, and this is corrected without using this definition.
-"
-                ])
-(define-syntax typed-struct
-  (syntax-parser
-    [(_ name prop ...)
-     #'(begin
-         (define-for-syntax (name . xs)
-           (error "Just a stub for types - can't actually use."))
-         (struct name prop ...))]))
-
 #;(define-docs (raise-out-error err f-stx out-stx full-stx)
     [Signature: TypeError Syntax Syntax Syntax -> Syntax]
     [Purpose:
@@ -211,6 +195,15 @@ identifier, and this is corrected without using this definition.
                        (type-error-msg err))
                       full-stx
                       out-stx))
+
+(define-syntax typed-struct
+  (syntax-parser
+    [(_ id:id [field:id ...] . rest)
+     #:with (field-types ...) (map/stx (const #'Any) #'(field ...))
+     #:with cstr-type #'[-> field-types ... Any]
+     #'(begin
+         (assign-type/id/parsed id cstr-type)
+         (struct id [field ...] . rest))]))
 
 #;(define-docs (begin-without-type-checking)
     [Syntax: (begin-without-type-checking expr ...)]
