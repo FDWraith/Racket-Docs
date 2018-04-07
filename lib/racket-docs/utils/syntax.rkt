@@ -69,11 +69,19 @@
 ; (e.g. if it's a syntax list, the syntaxes inside the list).
 (define (syntax-property/recur stx key val)
   (define (syntax-property/recur* stx*)
-    (syntax-property/recur stx* key val))
+    (cond
+      [(cons? stx*)
+       (cons (syntax-property/recur* (car stx*))
+             (syntax-property/recur* (cdr stx*)))]
+      [(empty? stx*) '()]
+      [else (syntax-property/recur stx* key val)]))
   (define stx+ (syntax-property stx key val))
   (define stx+e (syntax-e stx+))
   (cond
-    [(list? stx+e) (datum->syntax stx+ (map syntax-property/recur* stx+e))]
+    [(cons? stx+e)
+     (datum->syntax stx+
+                    (cons (syntax-property/recur* (car stx+e))
+                          (syntax-property/recur* (cdr stx+e))))]
     [else stx+]))
 
 ; Syntax -> Bool

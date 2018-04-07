@@ -115,7 +115,7 @@ Creates a documentation entry at phase 1 with `name` and the given syntax-expres
 
 ## Compiling Racket-Docs
 
-Compiling the completed *Racket-Docs* program can be done at the press of the compile docs button: ![](img/button.png) in the DrRacket GUI. Alternatively, the documentation can be compiled using the command `compile-docs` at the syntax-level (racket-docs forms are at phase 1).
+### Compiling the completed *Racket-Docs* program can be done at the press of the compile docs button: ![](img/button.png) in the DrRacket GUI. Alternatively, the documentation can be compiled using the command `compile-docs` at the syntax-level (racket-docs forms are at phase 1).
 
 ```text
 (define-docs compile-docs

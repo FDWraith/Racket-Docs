@@ -31,7 +31,7 @@
    "A combination of infix operators and numbers, without parenthesis."]
   [Examples:
    (cons 4 '()) <= "4"
-   (cons 1 (cons '+ (cons 2 (cons '* (cons 3 '()))))) <= "1 + 2 * 3"
+   (cons "a" (cons '+ (cons 2 (cons '* (cons 3 '()))))) <= "1 + 2 * 3"
    (cons -3.5 (cons '/ (cons 1/2 '()))) <= "-3.5 / 1/2"])
 
 (define-data Operator
@@ -66,8 +66,11 @@
     [(positive? n) (string-append str (string* str (- n 1)))]))
 
 (struct tree [value children] #:transparent)
+#;(define-syntax (tree value children)
+  (list 'tree value children))
+
 (define-data [Tree X]
-  [: (tree X [Listof [Tree X]])]
+  [: (list 'tree X [Listof [Tree X]])]
   [Interpretation: #<<"
 A tree.
 @value refers to the top node.

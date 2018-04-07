@@ -383,7 +383,7 @@ These could be used as parameters to make a forall type match @x.
              (part-find-parts (func-out x+)))]
     [(forall? x+)
      (find-proper-parts* ((forall-get-type x+) Nothing/parsed))]
-    [(expr-func? x+) (append-map part-find-parts x+)]
+    [(expr-func? x+) (append-map part-find-parts (rest x+))]
     [else '()]))
 
 #;(define-docs (fill-forall x)

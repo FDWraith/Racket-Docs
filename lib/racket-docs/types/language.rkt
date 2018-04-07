@@ -12,6 +12,7 @@
                      "struct.rkt"
                      "../utils.rkt"
                      syntax/parse
+                     racket/promise
                      racket/function
                      racket/list]
          "use.rkt"
@@ -136,39 +137,51 @@ and raises a syntax error if the body doesn't conform to the output.
      ; Splices local to allow type-checking
      #'(typed-named-λ fid (prm ...) sub-defs ... body ... out)]
     [(_ fid:id (prm:id ...) body ... out)
-     (type-check-λ #'fid #'(prm ...) #'(body ...) #'out this-syntax)
      #'(λ (prm ...)
+         (assign-λ-param-types fid (prm ...))
          body ...
-         out)]))
+         (assert-λ-out-type fid out))]))
 
-(define-for-syntax (type-check-λ fid-stx prms-stx body-stx out-stx this-stx)
-  (with-syntax [(fid fid-stx)
-                ((prm ...) prms-stx)
-                ((body ...) body-stx)
-                (out out-stx)]
-    (unless (skip-type-check? #'fid)
-      (define-values (_ type) (type-of #'fid))
-      (define param-types (try-func-params type))
-      (define out-type (try-func-out type))
-      (when param-types
-        (for [(param-stx (syntax->list #'(prm ...)))
-              (param-type param-types)]
-          (add-id-type! param-stx param-type))
-        ; Assigns local definition types
-        (for-each (curryr local-expand 'top-level (list #'λ))
-                  (filter (compose not stx-expression?)
-                          (syntax->list (allow-unbound #'(body ...)))))
-        ; Raises type errors (output type errors raised in (when out-type ...))
-        (for-each type-of
-                  (filter stx-expression?
-                          (syntax->list (allow-unbound #'(body ...))))))
-      (when out-type
-        (define-values (_ actual-out-type) (type-of (allow-unbound #'out)))
+(define-syntax assign-λ-param-types
+  (syntax-parser
+    [(_ fid:id (prm:id ...))
+     (unless (skip-type-check? #'fid)
+       #'(assign-λ-param-types/force fid (prm ...)))]))
+
+(define-syntax assign-λ-param-types/force
+  (syntax-parser
+    [(_ fid:id (prm:id ...))
+     (define f-type (try-get-id-type #'fid))
+     (define param-types (and f-type (try-func-params f-type)))
+     (when (and f-type param-types)
+       (for [(param-stx (syntax->list #'(prm ...)))
+             (param-type param-types)]
+         (add-id-type! param-stx param-type)))
+     #'(void)]))
+
+(define-syntax assert-λ-out-type
+  (syntax-parser
+    [(_ fid:id out)
+     (unless (skip-type-check? #'fid)
+       #'(assert-λ-out-type/force fid out))]))
+
+(define-syntax assert-λ-out-type/force
+  (syntax-parser
+    [(_ fid:id out)
+     (define f-type (try-get-id-type #'fid))
+     (define out-type (and f-type (try-func-out f-type)))
+     (cond
+       [(or (not f-type)
+            (not out-type))
+        #'out]
+       [else
+        (define-values (out+-stx actual-out-type) (type-of #'out))
         (unless (type<? actual-out-type out-type)
           (raise-out-error (get-type-error actual-out-type out-type)
                            #'fid
                            #'out
-                           this-stx))))))
+                           this-syntax))
+        out+-stx])]))
 
 #;(define-docs typed-struct
     [Syntax: (typed-struct name prop ...)]

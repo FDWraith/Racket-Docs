@@ -20,7 +20,7 @@ A combination of infix operators and numbers, without parenthesis.
 @bold{Examples:}
 @racketblock[(cons 4 '()) (code:comment "4")]
 
-@racketblock[(cons 1 (cons '+ (cons 2 (cons '* (cons 3 '()))))) (code:comment "1 + 2 * 3")]
+@racketblock[(cons "a" (cons '+ (cons 2 (cons '* (cons 3 '()))))) (code:comment "1 + 2 * 3")]
 
 @racketblock[(cons -3.5 (cons '/ (cons 1/2 '()))) (code:comment "-3.5 / 1/2")]
 
@@ -112,19 +112,6 @@ has level 0.
 
 
 
-
-
-
-@defproc[#:link-target? #f (annotate-depth/a [depth (code:line Nat)] [t (code:line [Tree (cons X0 (cons Nat '()))])]) (code:line [Tree (cons X0 (cons Nat '()))])]{
-Pairs each element in the @racket[tree] with its level, where the root of the
-tree has level @racket[depth].
-
-}
-
-
-@bold{Accumulator} - @racket[depth]:
-The current depth of the tree - how many calls
-to @racket[tree-children] are needed to get from @racket[t0] to @racket[t].
 
 
 
