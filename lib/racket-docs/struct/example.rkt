@@ -7,28 +7,27 @@
 
 #;(define-data Example
   [: - (eval-example Syntax Syntax Syntax)
-     - (interpret-data-example Syntax Desc)
-     - (plain-data-example Syntax)]
+     - (interpret-data-example Syntax Desc [Stx Type])
+     - (plain-data-example Syntax [Stx Type])]
   [Interpretation: #<<"
 A documented example.
-- (eval-example #'a #'b #'(a => b) check?) documents that a evaluates to b -
-  when a and b are evaluated, they're equal. (#'(a => b) is just the source).
-- (interpret-data-example #'a "b") documents that a is an example of the term
-  in source code (e.g. if the term is a type, a is an instance), and that it's
-  interpretation in English is b.
-- (plain-data-example #'a) documents that a is a code example of the term in
-  source code (e.g. if the term is a type, a is an instance).
+- @(eval-example #'a #'b #'(a => b) check?) documents that @a evaluates to @b -
+  when @a and @b are evaluated, they're equal. (@#'(a => b) is just the source).
+- @(interpret-data-example #'a "b" type) documents that @a is an instance of the
+  type being documented (@type), and that it's interpretation in English is @b.
+- @(plain-data-example #'a type) documents that @a is an instance of the type
+  being documented (@type).
 "
                    ]
   [Examples:
    "5 + 7 = 12" <= (eval-example #'(+ 5 7) #'12 #'[(+ 5 7) => 12])
    "(* 2 (+ 3 4)) encodes the math expression (2 * (3 + 4))" <=
-   (interpret-data-example #'(* 2 (+ 3 4)) "2 * (3 + 4)")
-   "9 is an instance of the type being documented" <=
-   (plain-data-example #'9)])
+   (interpret-data-example #'(* 2 (+ 3 4)) "2 * (3 + 4)" #'MathExpr)
+   "9 is an instance of an integer (assuming an integer is being documented)" <=
+   (plain-data-example #'9 #'Int)])
 (struct eval-example [expr expected stx] #:transparent)
-(struct interpret-data-example [expr interpretation] #:transparent)
-(struct plain-data-example [expr] #:transparent)
+(struct interpret-data-example [expr interpretation type] #:transparent)
+(struct plain-data-example [expr type] #:transparent)
 
 #;(define-docs (example-stx example)
     [Signature: Example -> Syntax]

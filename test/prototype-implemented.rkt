@@ -77,15 +77,10 @@ each @value in @children of @children is a grandchild node, and so on.
 "
             ]
   [Examples:
+   #;(list 'tree 12 '())
    (tree 12 '())
    (tree "A" (list (tree "B" '()) (tree "C" (list (tree "D" '())))))
    (tree (tree "Complex" '()) (list (tree "Tree" '())))])
-
-(define-docs (mk-tree value children)
-  [Signature: {All X} X [Listof [Tree X]] -> [Tree X]]
-  [Purpose: "Creates a tree."])
-(define (mk-tree value children)
-  (tree value children))
 
 (define-docs (annotate-depth t0)
   [Signature: {All X} [Tree X] -> [Tree (list X Nat)]]
@@ -127,7 +122,7 @@ to @tree-children are needed to get from @t0 to @t.
 "
                      ])
      (define (annotate-depth/a depth t)
-       (mk-tree (cons (tree-value t) (cons depth '()))
-                (map (curry annotate-depth/a (add1 depth))
-                     (tree-children t))))]
+       (tree (list (tree-value t) depth)
+             (map (curry annotate-depth/a (add1 depth))
+                  (tree-children t))))]
     (annotate-depth/a 0 t0)))

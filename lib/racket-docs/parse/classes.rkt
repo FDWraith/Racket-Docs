@@ -85,7 +85,9 @@ Examples:
 (define-parse-class extra-data-doc-prop
   #:datum-literals (Examples:)
   [[Examples: ~! ex:data-example ...]
-   (examples-doc-prop (parse-classes (ex ...)))])
+   (λ (type)
+     (examples-doc-prop (map (λ (get-example) (get-example type))
+                             (parse-classes (ex ...)))))])
 
 (define-splicing-parse-class example
   #:datum-literals (=>)
@@ -115,11 +117,11 @@ but not value or syntax examples.
 (define-splicing-parse-class data-example
   #:datum-literals (<=)
   [(~seq expr <= interpretation:raw-text)
-   (interpret-data-example #'expr (parse-class interpretation))]
+   (λ (type) (interpret-data-example #'expr (parse-class interpretation) type))]
   [(~seq expr <= bad-interpretation)
    (raise-syntax-error 'example-parser #<<"
 Not a valid data example - interpretation should be raw text.
 "
                        #'[expr <= bad-interpretation]
                        #'bad-interpretation)]
-  [expr (plain-data-example #'expr)])
+  [expr (λ (type) (plain-data-example #'expr type))])

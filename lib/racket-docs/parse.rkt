@@ -102,16 +102,21 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           [Interpretation: interpretation:raw-text]
           extra-prop:extra-data-doc-prop ...)
        #:with stx #`#'#,stx
-       #:with filled-type (fill-type-args (attribute head.args-pure) #'type.out)
+       #:with forall-type
+       (fill-type-args-forall (attribute head.args-pure) #'type.out)
+       #:with label-type
+       (fill-type-args-label (attribute head.args-pure) #'type.out)
        #:with run-tests
-       (or (tests-for-props1 (parse-classes (extra-prop ...))) #'(void))
+       (or (tests-for-props1 (map (λ (get-prop) (get-prop #'forall-type))
+                                  (parse-classes (extra-prop ...))))
+           #'(void))
        #'(begin
            (define entry
              (type-doc-entry
               #'head
-              (list (type-doc-prop filled-type)
+              (list (type-doc-prop label-type)
                     (interpretation-doc-prop interpretation.out1)
-                    extra-prop.out1 ...)))
+                    (extra-prop.out1 #false) ...)))
            (add-doc! entry 'define-data stx #'(extra-prop ...))
            (define-type/parsed head type.out)
            run-tests)]))
@@ -211,21 +216,27 @@ If documenting a function, also assignes the documented type.
         [Interpretation: interpretation:raw-text]
         extra-prop:extra-data-doc-prop ...)
      (define type+ (parse-class type))
-     (define extra-props+ (parse-classes (extra-prop ...)))
+     (define forall-type
+       (fill-type-args-forall (attribute head.args-pure) type+))
+     (define extra-props+
+       (map (λ (get-prop) (get-prop forall-type))
+            (parse-classes (extra-prop ...))))
+     (define define-type #`(define-type/parsed head #,type+))
      (define run-tests (tests-for-props extra-props+))
-     (define filled-type (fill-type-args (attribute head.args-pure) type+))
+     (define label-type
+       (fill-type-args-label (attribute head.args-pure) type+))
      (define entry
        (type-doc-entry
         #'head
-        (list* (type-doc-prop/stx filled-type)
+        (list* (type-doc-prop/stx label-type)
                (interpretation-doc-prop (parse-class interpretation))
                extra-props+)))
      (add-doc! entry 'define-data stx #'(extra-prop ...))
      (if run-tests
          #`(begin
-             (define-type/parsed head #,type+)
+             #,define-type
              #,run-tests)
-         #`(define-type/parsed head #,type+))]))
+         define-type)]))
 
 #;(define-docs define-syntax/docs
     [Syntax:

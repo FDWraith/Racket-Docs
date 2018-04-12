@@ -1,13 +1,17 @@
 #lang racket
 
-(provide typed-top
+(provide [for-syntax assert-type/phaseless]
+         typed-top
          typed-datum
          typed-app
          typed-define
          typed-struct
+         assert-type
+         assert-type/phaseless
          begin-without-type-checking)
 
-(require [for-syntax "error.rkt"
+(require [for-syntax [for-syntax racket/base]
+                     "error.rkt"
                      "subtype.rkt"
                      "struct.rkt"
                      "../utils.rkt"
@@ -196,6 +200,9 @@ and raises a syntax error if the body doesn't conform to the output.
                       full-stx
                       out-stx))
 
+#;(define-docs typed-struct
+    [Syntax: (_ id:id [field:id ...] . rest)]
+    [Semantics: "Creates a structure, and assigns its constructor a type."])
 (define-syntax typed-struct
   (syntax-parser
     [(_ id:id [field:id ...] . rest)
@@ -203,7 +210,57 @@ and raises a syntax error if the body doesn't conform to the output.
      #:with cstr-type #'[-> field-types ... Any]
      #'(begin
          (assign-type/id/parsed id cstr-type)
-         (struct id [field ...] . rest))]))
+         (define (id field ...)
+           (un.id field ...))
+         (struct id [field ...]
+           #:omit-define-syntaxes
+           #:extra-constructor-name un.id . rest))]))
+
+#;(define-docs assert-type
+    [Syntax: (_ [expr : type] msg:string)]
+    [Semantics: #<<"
+Raises a compile-type error, with @msg, if @expr is definitely not @type.
+"
+                ])
+(define-syntax assert-type
+  (syntax-parser
+    #:datum-literals (:)
+    [(_ [expr : type] msg:string)
+     #'(begin-for-syntax
+         (define-values (expr+ actual-type) (type-of #'expr))
+         (unless (type<? actual-type type)
+           (raise-assert-error (get-type-error actual-type type)
+                               msg
+                               #'expr)))]))
+
+#;(define-docs assert-type/phaseless
+    [Syntax: (_ [expr : type] msg:string)]
+    [Semantics: #<<"
+Raises a compile-type error, with @msg, if @expr is definitely not @type.
+Used in code which will be shared between phases 0 and 1 -
+There's also an @assert-type/phaseless in phase 1 which does nothing.
+"
+                ])
+(define-syntax assert-type/phaseless
+  (syntax-parser [(_ . rst) #'(assert-type . rst)]))
+
+(begin-for-syntax
+  #;(define-docs assert-type/phaseless
+    [Syntax: (_ [expr : type] msg:string)]
+    [Semantics: #<<"
+Does nothing - values don't have types in phase 1.
+Used in code which will be shared between phases 0 and 1.
+"
+                ])
+  (define-syntax (assert-type/phaseless stx) #'(void)))
+
+#;(define-docs (raise-assert-error err msg expr-stx)
+    [Signature: TypeError String Syntax -> Syntax]
+    [Purpose: "Raises a syntax error for a failed type assertion."])
+(define-for-syntax (raise-assert-error err msg expr-stx)
+  (raise-syntax-error 'assert-type
+                      (string-append msg ":\n" (type-error-msg err))
+                      expr-stx))
 
 #;(define-docs (begin-without-type-checking)
     [Syntax: (begin-without-type-checking expr ...)]

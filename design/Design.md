@@ -6,7 +6,7 @@
 
 ## Vocabulary and Grammar
 
-*Racket-Docs* introduces two new forms, `define-data` and `define-docs` that are used to define data-definitions and function-documentation.
+*Racket-Docs* introduces two new forms, `define-data` and `define-docs`, which are used to define data-definitions and function documentation.
 
 ```text
 #lang racket-docs
@@ -68,7 +68,7 @@ provided-type-expr = Void
 
 ### define-data
 
-```
+```Scheme
 (define-data name
 	[: - type-expr
 	   ...+]
@@ -82,7 +82,7 @@ Creates a documentation entry at phase 1, as well as a new type, with `name` and
 
 **Function Definitions:**
 
-```
+```Scheme
 (define-docs (name args ...)
 	[Signature: type(s) -> output-type]
 	[Purpose: description]
@@ -93,7 +93,7 @@ Creates a documentation entry at phase 1 with ``name`` and the given signature a
 
 **Constant Definitions:**
 
-```
+```Scheme
 (define-docs name
 	[Signature: type]
 	[Purpose: description]
@@ -104,7 +104,7 @@ Creates a documentation entry at phase 1 with `name` and the given signature and
 
 **Macro Definitions:**
 
-```
+```Scheme
 (define-docs name
 	[Syntax: stx]
 	[Semantics: description]
@@ -115,17 +115,17 @@ Creates a documentation entry at phase 1 with `name` and the given syntax-expres
 
 ## Compiling Racket-Docs
 
-### Compiling the completed *Racket-Docs* program can be done at the press of the compile docs button: ![](img/button.png) in the DrRacket GUI. Alternatively, the documentation can be compiled using the command `compile-docs` at the syntax-level (racket-docs forms are at phase 1).
+Compiling the completed *Racket-Docs* program can be done at the press of the compile docs button: ![](img/button.png) in the DrRacket GUI. Alternatively, the documentation can be compiled using the command `compile-docs` at the syntax-level (racket-docs forms are at phase 1).
 
-```text
+```scheme
 (define-docs compile-docs
   [Syntax: (compile-docs (get-all-docs) path-expr)]
   [Semantics: "Compiles all the documentation to the specified path (defaults to temp if no path-expr is given)"])
 ```
 
-This uses the `get-all-docs` command, which simply retrieves all the documentation entries  *so far* and returns a list of entries.
+This uses the `get-all-docs` command, which simply retrieves all the documentation entries *so far* and returns a list of entries.
 
-```
+```scheme
 (define-docs get-all-docs
   [Syntax: (get-all-docs)]
   [Semantics: "Retrieves all defined documentation entries so far"])

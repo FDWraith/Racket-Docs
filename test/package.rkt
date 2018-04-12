@@ -13,9 +13,10 @@
 
 (define-data String/False
   [: - String
-     - Bool]
+     - #false]
   [Interpretation: "A string or false."]
-  [Examples: "Hello" "World" #f])
+  [Examples: "Hello" "World" #f]
+  #;[Examples: "Hello" "World" #t])
 
 (define-docs hello
   [Signature: String/False]

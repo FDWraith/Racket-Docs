@@ -4,10 +4,14 @@
          tests-for-props1)
 
 (require [for-syntax syntax/parse]
+         "../types/error.rkt"
+         "../types/subtype.rkt"
          "../struct.rkt"
          syntax/parse
          
-         [for-template "../utils.rkt"
+         [for-template "../types/language.rkt"
+                       "../types/use.rkt"
+                       "../utils.rkt"
                        rackunit
                        racket/base])
 
@@ -77,14 +81,10 @@ so that they don't conflict with tests in phase 0.
 
 #;(define-docs (test-for-example example)
     [Signature: Example -> Syntax]
-    [Purpose: "Returns a syntax which verifies the example."]
+    [Purpose: "Returns syntax which verifies the example."]
     [Examples:
      (test-for-example (eval-example #'(+ 1 2) #'3)) =>
-     #'(check-equal? (+ 1 2) 3)
-     (test-for-example (plain-data-example #'(println "Foo"))) =>
-     #'(println "Foo")
-     (test-for-example (interpret-data-example #'(println "a") "Prints a.")) =>
-     #'(println "a")])
+     #'(check-equal? (+ 1 2) 3)])
 (define (test-for-example example)
   (define test-datum
     (cond
@@ -95,15 +95,47 @@ so that they don't conflict with tests in phase 0.
              (eval-example-expected example)
              #'"Example doesn't evaluate to what's expected")]
       [(plain-data-example? example)
-       (list #'check-not-exn
-             #`(λ () #,(plain-data-example-expr example))
-             "While evaluating an example")]
-      [(interpret-data-example? example)
-       (list #'check-not-exn
-             #`(λ () #,(interpret-data-example-expr example))
-             "While evaluating an interpreted example")]))
+       (test-for-data-example (plain-data-example-expr example)
+                              (plain-data-example-type example))]
+      [(plain-data-example? example)
+       (test-for-data-example (interpret-data-example-expr example)
+                              (interpret-data-example-type example))]))
   (define test-stx (example-stx example))
   (datum->syntax test-stx
                  test-datum
                  test-stx
                  test-stx))
+
+#;(define-docs (test-for-data-example expr-stx type-stx)
+    [Signature: Syntax [Stx Type] -> Syntax]
+    [Purpose: #<<"
+Returns syntax which verifies the data example with the given expression and
+type.
+"
+              ])
+(define (test-for-data-example expr-stx type-stx)
+  #`(begin
+      #,(type-test-for-data-example expr-stx type-stx)
+      #,(eval-test-for-data-example expr-stx)))
+
+#;(define-docs (type-test-for-data-example expr-stx type-stx)
+    [Signature: Syntax [Stx Type] -> Syntax]
+    [Purpose: #<<"
+Returns syntax which verifies the given expression conforms to the given type.
+"
+              ])
+(define (type-test-for-data-example expr-stx type-stx)
+  #`(assert-type/phaseless [#,expr-stx : #,type-stx]
+                           "Example not an instance of the data definition"))
+
+#;(define-docs (eval-test-for-data-example expr-stx type-stx)
+    [Signature: Syntax -> Syntax]
+    [Purpose: #<<"
+Returns syntax which verifies the given expression doesn't throw a runtime
+error.
+"
+              ])
+(define (eval-test-for-data-example expr-stx)
+  (list #'check-not-exn
+        #`(λ () #,expr-stx)
+        "While evaluating an example"))
