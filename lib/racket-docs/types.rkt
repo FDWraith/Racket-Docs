@@ -13,6 +13,7 @@
          assign-type/id/parsed/src
          typed-datum
          typed-app
+         assert-type/parsed
          begin-without-type-checking)
 
 (require [for-syntax "types/parse.rkt"]

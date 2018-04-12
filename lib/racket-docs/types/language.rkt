@@ -1,16 +1,14 @@
 #lang racket
 
-(provide [for-syntax assert-type/phaseless]
-         typed-top
+(provide typed-top
          typed-datum
          typed-app
          typed-define
          typed-struct
-         assert-type
-         assert-type/phaseless
+         assert-type/parsed
          begin-without-type-checking)
 
-(require [for-syntax [for-syntax racket/base]
+(require [for-syntax "parse.rkt"
                      "error.rkt"
                      "subtype.rkt"
                      "struct.rkt"
@@ -216,15 +214,19 @@ and raises a syntax error if the body doesn't conform to the output.
            #:omit-define-syntaxes
            #:extra-constructor-name un.id . rest))]))
 
-#;(define-docs assert-type
-    [Syntax: (_ [expr : type] msg:string)]
+#;(define-docs assert-type/parsed
+    [Syntax: (_ [expr : type])
+             (_ [expr : type] msg:string)]
     [Semantics: #<<"
-Raises a compile-type error, with @msg, if @expr is definitely not @type.
+Raises a compile-type error, with @msg (default "Assertion failed"),
+if @expr is definitely not (parsed) @type.
 "
                 ])
-(define-syntax assert-type
+(define-syntax assert-type/parsed
   (syntax-parser
     #:datum-literals (:)
+    [(_ [expr : type])
+     #'(assert-type/parsed [expr : type] "Assertion failed")]
     [(_ [expr : type] msg:string)
      #'(begin-for-syntax
          (define-values (expr+ actual-type) (type-of #'expr))
@@ -232,27 +234,6 @@ Raises a compile-type error, with @msg, if @expr is definitely not @type.
            (raise-assert-error (get-type-error actual-type type)
                                msg
                                #'expr)))]))
-
-#;(define-docs assert-type/phaseless
-    [Syntax: (_ [expr : type] msg:string)]
-    [Semantics: #<<"
-Raises a compile-type error, with @msg, if @expr is definitely not @type.
-Used in code which will be shared between phases 0 and 1 -
-There's also an @assert-type/phaseless in phase 1 which does nothing.
-"
-                ])
-(define-syntax assert-type/phaseless
-  (syntax-parser [(_ . rst) #'(assert-type . rst)]))
-
-(begin-for-syntax
-  #;(define-docs assert-type/phaseless
-    [Syntax: (_ [expr : type] msg:string)]
-    [Semantics: #<<"
-Does nothing - values don't have types in phase 1.
-Used in code which will be shared between phases 0 and 1.
-"
-                ])
-  (define-syntax (assert-type/phaseless stx) #'(void)))
 
 #;(define-docs (raise-assert-error err msg expr-stx)
     [Signature: TypeError String Syntax -> Syntax]

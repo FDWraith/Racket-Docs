@@ -7,16 +7,17 @@
 
 #;(define-data Example
   [: - (eval-example Syntax Syntax Syntax)
-     - (interpret-data-example Syntax Desc [Stx Type])
-     - (plain-data-example Syntax [Stx Type])]
+     - (interpret-data-example Syntax Desc [Maybe [Stx Type]])
+     - (plain-data-example Syntax [Maybe [Stx Type]])]
   [Interpretation: #<<"
 A documented example.
 - @(eval-example #'a #'b #'(a => b) check?) documents that @a evaluates to @b -
   when @a and @b are evaluated, they're equal. (@#'(a => b) is just the source).
 - @(interpret-data-example #'a "b" type) documents that @a is an instance of the
-  type being documented (@type), and that it's interpretation in English is @b.
+  type being documented (@type if provided), and that it's interpretation in
+  English is @b.
 - @(plain-data-example #'a type) documents that @a is an instance of the type
-  being documented (@type).
+  being documented (@type if provided).
 "
                    ]
   [Examples:

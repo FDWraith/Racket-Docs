@@ -8,8 +8,7 @@
                      #%datum
                      #%app
                      define
-                     struct
-                     #;[all-from-out "types/builtin-instances.rkt"]]
+                     struct]
          [rename-out (typed-top #%top)
                      (typed-datum #%datum)
                      (typed-app #%app)
@@ -26,6 +25,7 @@
          define-data
          define-syntax/docs
          begin-without-type-checking
+         assert-type
          [all-from-out "types/builtin-instances.rkt"]
          [all-from-out "types/builtin.rkt"])
 

@@ -68,6 +68,11 @@
   
   (displayln "Hello"))
 
+(assert-type [+int : StxDocumentedInt Int -> Int])
+(assert-type [(+int 5 7) : Int])
+#;(assert-type [+int : [Listof String] [Listof String] -> [Listof String]])
+#;(assert-type [(+int 5 7) : String])
+
 (+int 5 7)
 (begin-without-type-checking
   (+int 3.5 3.6)

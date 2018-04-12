@@ -7,7 +7,8 @@
                      no-docs?]
          define-docs
          define-data
-         define-syntax/docs)
+         define-syntax/docs
+         assert-type)
 
 (require [for-syntax [for-syntax "parse/gen.rkt"
                                  "parse/tests.rkt"
@@ -102,12 +103,10 @@ types, will generate a syntax error, blaming @stx and @shared-stx. Then adds
           [Interpretation: interpretation:raw-text]
           extra-prop:extra-data-doc-prop ...)
        #:with stx #`#'#,stx
-       #:with forall-type
-       (fill-type-args-forall (attribute head.args-pure) #'type.out)
        #:with label-type
        (fill-type-args-label (attribute head.args-pure) #'type.out)
        #:with run-tests
-       (or (tests-for-props1 (map (λ (get-prop) (get-prop #'forall-type))
+       (or (tests-for-props1 (map (λ (get-prop) (get-prop #false))
                                   (parse-classes (extra-prop ...))))
            #'(void))
        #'(begin
@@ -281,3 +280,19 @@ Automatically generates SYNTAX documentation from syntax-parse clauses.
                                     [(_ (bar x:nat)) #'x])))])
 (define-syntax define-syntax/docs
   (gen-define-syntax/docs #'define-docs))
+
+#;(define-docs assert-type
+    [Syntax: (_ [expr : type])
+             (_ [expr : type] msg:string)]
+    [Semantics: #<<"
+Raises a compile-type error, with @msg (default "Assertion failed"),
+if @expr is definitely not @type.
+"
+                ])
+(define-syntax assert-type
+  (syntax-parser
+    #:datum-literals (:)
+    [(_ [expr : type:type])
+     #'(assert-type/parsed [expr : type.out])]
+    [(_ [expr : type:type] msg:string)
+     #'(assert-type/parsed [expr : type.out] msg)]))

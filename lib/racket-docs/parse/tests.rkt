@@ -10,7 +10,6 @@
          syntax/parse
          
          [for-template "../types/language.rkt"
-                       "../types/use.rkt"
                        "../utils.rkt"
                        rackunit
                        racket/base])
@@ -107,16 +106,19 @@ so that they don't conflict with tests in phase 0.
                  test-stx))
 
 #;(define-docs (test-for-data-example expr-stx type-stx)
-    [Signature: Syntax [Stx Type] -> Syntax]
+    [Signature: Syntax [Maybe [Stx Type]] -> Syntax]
     [Purpose: #<<"
 Returns syntax which verifies the data example with the given expression and
-type.
+(optional) type.
 "
               ])
 (define (test-for-data-example expr-stx type-stx)
-  #`(begin
-      #,(type-test-for-data-example expr-stx type-stx)
-      #,(eval-test-for-data-example expr-stx)))
+  (cond
+    [(not type-stx) (eval-test-for-data-example expr-stx)]
+    [type-stx
+     #`(begin
+         #,(type-test-for-data-example expr-stx type-stx)
+         #,(eval-test-for-data-example expr-stx))]))
 
 #;(define-docs (type-test-for-data-example expr-stx type-stx)
     [Signature: Syntax [Stx Type] -> Syntax]
@@ -125,8 +127,8 @@ Returns syntax which verifies the given expression conforms to the given type.
 "
               ])
 (define (type-test-for-data-example expr-stx type-stx)
-  #`(assert-type/phaseless [#,expr-stx : #,type-stx]
-                           "Example not an instance of the data definition"))
+  #`(assert-type/parsed [#,expr-stx : #,type-stx]
+                        "Example not an instance of the data definition"))
 
 #;(define-docs (eval-test-for-data-example expr-stx type-stx)
     [Signature: Syntax -> Syntax]
