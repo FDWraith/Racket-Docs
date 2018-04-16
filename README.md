@@ -131,3 +131,6 @@ This uses the `get-all-docs` command, which simply retrieves all the documentati
   [Semantics: "Retrieves all defined documentation entries so far"])
 ```
 
+---
+
+See `./design` for additional details about scope and semantics.
